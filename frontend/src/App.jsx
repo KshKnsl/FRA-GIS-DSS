@@ -11,12 +11,16 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <Routes>
-          <Route path="/" element={<FRAAtlas />} />
-          <Route path="/fra-dashboard/:state" element={<FRADashboard />} />
-          <Route path="/village/:villageId" element={<VillageProfile />} />
-          <Route path="/schemes/:villageId" element={<SchemeRecommendations />} />
-        </Routes>
+        <div className="lg:pl-72">
+          <main className="min-h-screen">
+            <Routes>
+              <Route path="/" element={<FRAAtlas />} />
+              <Route path="/fra-dashboard/:state" element={<FRADashboard />} />
+              <Route path="/village/:villageId" element={<VillageProfile />} />
+              <Route path="/schemes/:villageId" element={<SchemeRecommendations />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );

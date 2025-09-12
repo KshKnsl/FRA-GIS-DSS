@@ -125,27 +125,27 @@ const VillageProfile = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-  {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Village Profile</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Village Profile</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">
                 {villageData.village_name}, {villageData.district}, {villageData.state}
               </p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Link 
                 to="/"
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center text-sm"
               >
                 Back to Atlas
               </Link>
               <Link 
                 to={`/schemes/${villageId}`}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center text-sm"
               >
                 View Schemes
               </Link>
@@ -153,20 +153,20 @@ const VillageProfile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Left Column - Village Information */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Enhanced Data Card */}
             {enhancedData && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Enhanced Village Data</CardTitle>
+                  <CardTitle className="text-lg">Enhanced Village Data</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {Object.entries(enhancedData).map(([key, value]) => (
                       <div key={key}>
-                        <p className="text-sm text-gray-600 capitalize">{key.replace(/_/g, ' ')}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 capitalize">{key.replace(/_/g, ' ')}</p>
                         <p className="font-medium text-xs break-all">{String(value)}</p>
                       </div>
                     ))}
@@ -363,39 +363,6 @@ const VillageProfile = () => {
                       </Circle>
                     ))}
                   </MapContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Asset Legend */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Asset Legend</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Water Bodies</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Agricultural Land</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-emerald-600 rounded-full mr-2"></div>
-                    <span className="text-sm">Forest Areas</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Homesteads</span>
-                  </div>
-                </div>
-                <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-blue-800">
-                    Assets are mapped using AI analysis of high-resolution satellite imagery.
-                    Confidence scores indicate the reliability of AI detection.
-                  </p>
                 </div>
               </CardContent>
             </Card>

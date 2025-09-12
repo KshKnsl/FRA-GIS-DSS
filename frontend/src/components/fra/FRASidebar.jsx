@@ -297,44 +297,6 @@ const FRASidebar = ({
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Legend</h3>
-          <div className="space-y-2">
-            <div className="text-xs text-gray-600 font-medium mb-1">Claim Types:</div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-              <span className="text-xs text-gray-600">Individual Forest Rights (IFR)</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-xs text-gray-600">Community Rights (CR)</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-              <span className="text-xs text-gray-600">Community Forest Resource Rights (CFR)</span>
-            </div>
-            <div className="text-xs text-gray-600 font-medium mt-2 mb-1">Status:</div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-400 border-2 border-green-600 rounded-full mr-2 opacity-50"></div>
-              <span className="text-xs text-gray-600">Approved</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-yellow-400 border-2 border-yellow-600 rounded-full mr-2 opacity-50"></div>
-              <span className="text-xs text-gray-600">Pending</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-red-400 border-2 border-red-600 rounded-full mr-2 opacity-50"></div>
-              <span className="text-xs text-gray-600">Rejected</span>
-            </div>
-            <div className="text-xs text-gray-600 font-medium mt-2 mb-1">Markers:</div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-purple-600 text-white text-xs flex items-center justify-center font-bold mr-2" style={{ borderRadius: "3px" }}>P</div>
-              <span className="text-xs text-gray-600">Patta Holders</span>
-            </div>
-          </div>
-        </div>
-
         {/* Quick Actions */}
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h3>
@@ -345,12 +307,6 @@ const FRASidebar = ({
             >
               View Dashboard
             </a>
-            <Button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-              Generate Report
-            </Button>
-            <Button className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
-              Export Data
-            </Button>
           </div>
         </div>
 

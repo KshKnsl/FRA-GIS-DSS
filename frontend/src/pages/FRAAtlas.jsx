@@ -335,42 +335,77 @@ const FRAAtlas = () => {
   ).sort();
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <FRASidebar
-        targetStates={targetStates}
-        selectedState={selectedState}
-        setSelectedState={setSelectedState}
-        showClaimModal={showClaimModal}
-        setShowClaimModal={setShowClaimModal}
-        claimForm={claimForm}
-        handleClaimFormChange={handleClaimFormChange}
-        handleClaimSubmit={handleClaimSubmit}
-        claimSubmitting={claimSubmitting}
-        claimSuccess={claimSuccess}
-        uniqueDistricts={uniqueDistricts}
-        selectedDistrict={selectedDistrict}
-        setSelectedDistrict={setSelectedDistrict}
-        districtStats={districtStats}
-        selectedClaimType={selectedClaimType}
-        setSelectedClaimType={setSelectedClaimType}
-        showCoverageAreas={showCoverageAreas}
-        setShowCoverageAreas={setShowCoverageAreas}
-        showPattaHolders={showPattaHolders}
-        setShowPattaHolders={setShowPattaHolders}
-        fraVillages={fraVillages}
-        fraClaims={fraClaims}
-        filteredClaims={filteredClaims}
-        pattaHolders={pattaHolders}
-      />
+    <div className="flex flex-col lg:flex-row h-screen bg-gray-100">
+      {/* Mobile/Tablet: Sidebar in Sheet, Desktop: Fixed sidebar */}
+      <div className="lg:hidden">
+        {/* Mobile controls will be handled by the NavigationSidebar */}
+      </div>
+      
+      <div className="hidden lg:block">
+        <FRASidebar
+          targetStates={targetStates}
+          selectedState={selectedState}
+          setSelectedState={setSelectedState}
+          showClaimModal={showClaimModal}
+          setShowClaimModal={setShowClaimModal}
+          claimForm={claimForm}
+          handleClaimFormChange={handleClaimFormChange}
+          handleClaimSubmit={handleClaimSubmit}
+          claimSubmitting={claimSubmitting}
+          claimSuccess={claimSuccess}
+          uniqueDistricts={uniqueDistricts}
+          selectedDistrict={selectedDistrict}
+          setSelectedDistrict={setSelectedDistrict}
+          districtStats={districtStats}
+          selectedClaimType={selectedClaimType}
+          setSelectedClaimType={setSelectedClaimType}
+          showCoverageAreas={showCoverageAreas}
+          setShowCoverageAreas={setShowCoverageAreas}
+          showPattaHolders={showPattaHolders}
+          setShowPattaHolders={setShowPattaHolders}
+          fraVillages={fraVillages}
+          fraClaims={fraClaims}
+          filteredClaims={filteredClaims}
+          pattaHolders={pattaHolders}
+        />
+      </div>
+      
       <div className="flex-1 relative">
         {loading && (
-          <div className="absolute top-4 left-4 z-10 bg-white px-4 py-2 rounded-md shadow-lg">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-white px-3 py-2 rounded-md shadow-lg">
             <div className="flex items-center">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
-              Loading FRA data...
+              <span className="text-sm">Loading FRA data...</span>
             </div>
           </div>
         )}
+        
+        {/* Mobile Controls Bar */}
+        <div className="lg:hidden absolute top-2 right-2 z-[1000] flex gap-2">
+          <select
+            value={selectedState}
+            onChange={(e) => setSelectedState(e.target.value)}
+            className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm shadow-sm"
+          >
+            {targetStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+          
+          <select
+            value={selectedClaimType}
+            onChange={(e) => setSelectedClaimType(e.target.value)}
+            className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm shadow-sm"
+          >
+            <option value="all">All Claims</option>
+            <option value="IFR">IFR Claims</option>
+            <option value="CR">CR Claims</option>
+            <option value="CFR">CFR Claims</option>
+          </select>
+        </div>
+        
         <FRAMap
           mapCenter={mapCenter}
           filteredVillages={filteredVillages}
@@ -384,21 +419,21 @@ const FRAAtlas = () => {
           selectedState={selectedState}
           L={L}
         />
-        {/* Map Info Panel */}
-        <div className="absolute bottom-4 left-4 bg-white p-4 rounded-lg shadow-lg max-w-sm z-[1000]">
-          <h3 className="font-bold text-gray-800 mb-2">FRA Atlas Information</h3>
-          <p className="text-sm text-gray-600 mb-2">
+        
+        {/* Map Info Panel - Mobile responsive */}
+        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-white p-3 sm:p-4 rounded-lg shadow-lg max-w-xs sm:max-w-sm z-[1000]">
+          <h3 className="font-bold text-gray-800 mb-2 text-sm sm:text-base">FRA Atlas Information</h3>
+          <p className="text-xs sm:text-sm text-gray-600 mb-2">
             Displaying Forest Rights Act data for <strong>{selectedState}</strong>
           </p>
-          <div className="text-xs text-gray-500">
-            <p>• <strong>Village markers:</strong> FRA villages with claim data</p>
-            <p>• <strong>Coverage circles:</strong> FRA claim areas (color = type, opacity = status)</p>
-            <p>• <strong>Purple squares:</strong> Individual patta holders</p>
-            <p>• <strong>Use layer controls</strong> to toggle different data layers</p>
-            <p>• <strong>Filter sidebar</strong> to refine displayed data</p>
+          <div className="text-xs text-gray-500 space-y-1">
+            <p>• <strong>Village markers:</strong> FRA villages</p>
+            <p>• <strong>Coverage circles:</strong> FRA claim areas</p>
+            <p>• <strong>Purple squares:</strong> Patta holders</p>
+            <p className="hidden sm:block">• <strong>Use layer controls</strong> to toggle data layers</p>
           </div>
           <div className="mt-2 text-xs text-green-600 font-medium">
-            Showing {filteredClaims.length} claims, {pattaHolders.length} patta holders
+            {filteredClaims.length} claims, {pattaHolders.length} patta holders
           </div>
         </div>
       </div>

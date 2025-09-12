@@ -85,59 +85,56 @@ const FRADashboard = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">FRA Dashboard</h1>
-              <p className="text-gray-600 mt-1">{state} - Forest Rights Act Implementation Status</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">FRA Dashboard</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">{state} - Forest Rights Act Implementation Status</p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Link 
                 to="/"
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center text-sm"
               >
                 Back to Atlas
               </Link>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                Export Report
-              </button>
             </div>
           </div>
         </div>
 
         {/* Key Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Claims</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Total Claims</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{statistics.total_claims}</div>
-              <p className="text-xs text-gray-500 mt-1">All FRA applications</p>
+              <div className="text-xl sm:text-2xl font-bold text-gray-900">{statistics.total_claims}</div>
+              <p className="text-xs text-gray-500 mt-1 hidden sm:block">All FRA applications</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Granted Claims</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Granted Claims</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{statistics.granted_claims}</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">{statistics.granted_claims}</div>
               <p className="text-xs text-gray-500 mt-1">
-                {calculatePercentage(statistics.granted_claims, statistics.total_claims)}% success rate
+                {calculatePercentage(statistics.granted_claims, statistics.total_claims)}% success
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Claims</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Pending Claims</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{statistics.pending_claims}</div>
+              <div className="text-xl sm:text-2xl font-bold text-yellow-600">{statistics.pending_claims}</div>
               <p className="text-xs text-gray-500 mt-1">
                 {calculatePercentage(statistics.pending_claims, statistics.total_claims)}% pending
               </p>
@@ -146,25 +143,25 @@ const FRADashboard = () => {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Area Granted</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Total Area</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-lg sm:text-2xl font-bold text-blue-600">
                 {parseFloat(statistics.total_granted_area || 0).toFixed(1)} ha
               </div>
-              <p className="text-xs text-gray-500 mt-1">Hectares under FRA</p>
+              <p className="text-xs text-gray-500 mt-1 hidden sm:block">Hectares under FRA</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Claim Type Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>Claim Type Distribution</CardTitle>
+              <CardTitle className="text-lg">Claim Type Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
@@ -172,7 +169,7 @@ const FRADashboard = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold">{statistics.ifr_claims}</span>
-                    <Badge className="bg-blue-100 text-blue-800">
+                    <Badge className="bg-blue-100 text-blue-800 text-xs">
                       {calculatePercentage(statistics.ifr_claims, statistics.total_claims)}%
                     </Badge>
                   </div>
@@ -185,7 +182,7 @@ const FRADashboard = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold">{statistics.cr_claims}</span>
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-100 text-green-800 text-xs">
                       {calculatePercentage(statistics.cr_claims, statistics.total_claims)}%
                     </Badge>
                   </div>
@@ -198,7 +195,7 @@ const FRADashboard = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold">{statistics.cfr_claims}</span>
-                    <Badge className="bg-orange-100 text-orange-800">
+                    <Badge className="bg-orange-100 text-orange-800 text-xs">
                       {calculatePercentage(statistics.cfr_claims, statistics.total_claims)}%
                     </Badge>
                   </div>
@@ -209,7 +206,7 @@ const FRADashboard = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Implementation Status</CardTitle>
+              <CardTitle className="text-lg">Implementation Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -240,7 +237,7 @@ const FRADashboard = () => {
                 </div>
 
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-800">
+                  <p className="text-xs sm:text-sm text-blue-800">
                     <strong>Implementation Rate:</strong> {calculatePercentage(statistics.granted_claims, statistics.total_claims)}% of claims have been successfully granted.
                   </p>
                 </div>
@@ -252,10 +249,11 @@ const FRADashboard = () => {
         {/* District-wise Breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle>District-wise Implementation Status</CardTitle>
+            <CardTitle className="text-lg">District-wise Implementation Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -311,6 +309,49 @@ const FRADashboard = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-3">
+              {districts.map((district, index) => (
+                <Card key={index} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{district.district}</h3>
+                        <p className="text-sm text-gray-500">District</p>
+                      </div>
+                      <Badge className={
+                        calculatePercentage(district.granted_count, district.claims_count) > 70 
+                          ? 'bg-green-100 text-green-800' 
+                          : calculatePercentage(district.granted_count, district.claims_count) > 40
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }>
+                        {calculatePercentage(district.granted_count, district.claims_count)}%
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">Total Claims:</span>
+                        <p className="font-medium">{district.claims_count}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Granted:</span>
+                        <p className="font-medium text-green-600">{district.granted_count}</p>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => handleViewDetails(district)}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </Card>
+              ))}
             </div>
           </CardContent>
         </Card>
