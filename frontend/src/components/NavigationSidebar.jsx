@@ -198,7 +198,7 @@ const NavigationSidebar = () => {
       </div>
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:z-40 lg:w-72">
+      <div className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:w-72">
         <div className="flex flex-col bg-white border-r border-gray-200 h-full">
           <SidebarContent />
         </div>

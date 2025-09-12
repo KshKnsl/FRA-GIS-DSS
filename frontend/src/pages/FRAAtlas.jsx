@@ -347,30 +347,139 @@ const FRAAtlas = () => {
           </div>
         )}
         
-        {/* Mobile Controls Bar */}
-        <div className="lg:hidden absolute top-2 right-2 z-[1000] flex gap-2">
-          <select
-            value={selectedState}
-            onChange={(e) => setSelectedState(e.target.value)}
-            className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm shadow-sm"
-          >
-            {targetStates.map((state) => (
-              <option key={state} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          
-          <select
-            value={selectedClaimType}
-            onChange={(e) => setSelectedClaimType(e.target.value)}
-            className="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm shadow-sm"
-          >
-            <option value="all">All Claims</option>
-            <option value="IFR">IFR Claims</option>
-            <option value="CR">CR Claims</option>
-            <option value="CFR">CFR Claims</option>
-          </select>
+        {/* Map Controls Panel - All screen sizes */}
+        <div className="absolute top-2 right-2 z-[1000] space-y-2">
+          {/* Main Controls Card */}
+          <div className="bg-white p-3 rounded-lg shadow-lg min-w-[200px]">
+            <h4 className="font-medium text-gray-800 mb-3 text-sm">Map Controls</h4>
+            
+            {/* State Selector */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Select State
+              </label>
+              <select
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="All States">All States</option>
+                {targetStates.map((state) => (
+                  <option key={state} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Claim Type Filter */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Filter by Claim Type
+              </label>
+              <select
+                value={selectedClaimType}
+                onChange={(e) => setSelectedClaimType(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="all">All Types</option>
+                <option value="IFR">Individual Forest Rights (IFR)</option>
+                <option value="CR">Community Rights (CR)</option>
+                <option value="CFR">Community Forest Resource Rights (CFR)</option>
+              </select>
+            </div>
+
+            {/* District Selector */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Select District
+              </label>
+              <select
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">-- Select District --</option>
+                {uniqueDistricts.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Layer Controls */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Map Layers
+              </label>
+              <div className="space-y-1">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={showCoverageAreas}
+                    onChange={(e) => setShowCoverageAreas(e.target.checked)}
+                    className="mr-2 w-3 h-3"
+                  />
+                  <span className="text-xs text-gray-600">Coverage Areas</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={showPattaHolders}
+                    onChange={(e) => setShowPattaHolders(e.target.checked)}
+                    className="mr-2 w-3 h-3"
+                  />
+                  <span className="text-xs text-gray-600">Patta Holders</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="border-t pt-2 mt-2">
+              <div className="text-xs text-gray-600">
+                <div className="flex justify-between">
+                  <span>Villages:</span>
+                  <span className="font-medium">{fraVillages.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Claims:</span>
+                  <span className="font-medium">{filteredClaims.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Patta Holders:</span>
+                  <span className="font-medium">{pattaHolders.length}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* District Stats Card */}
+          {selectedDistrict && districtStats && (
+            <div className="bg-blue-50 p-3 rounded-lg shadow-lg min-w-[200px]">
+              <h4 className="font-medium text-blue-800 mb-2 text-sm">
+                {selectedDistrict} District
+              </h4>
+              <div className="text-xs text-gray-700 space-y-1">
+                <div className="flex justify-between">
+                  <span>Total Claims:</span>
+                  <span className="font-medium">{districtStats.total_claims}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Granted:</span>
+                  <span className="font-medium text-green-600">{districtStats.granted_claims}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Pending:</span>
+                  <span className="font-medium text-yellow-600">{districtStats.pending_claims}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Area Granted:</span>
+                  <span className="font-medium">{districtStats.total_granted_area} ha</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         <FRAMap
@@ -387,22 +496,6 @@ const FRAAtlas = () => {
           L={L}
         />
         
-        {/* Map Info Panel - Mobile responsive */}
-        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-white p-3 sm:p-4 rounded-lg shadow-lg max-w-xs sm:max-w-sm z-[1000]">
-          <h3 className="font-bold text-gray-800 mb-2 text-sm sm:text-base">FRA Atlas Information</h3>
-          <p className="text-xs sm:text-sm text-gray-600 mb-2">
-            Displaying Forest Rights Act data for <strong>{selectedState}</strong>
-          </p>
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>• <strong>Village markers:</strong> FRA villages</p>
-            <p>• <strong>Coverage circles:</strong> FRA claim areas</p>
-            <p>• <strong>Purple squares:</strong> Patta holders</p>
-            <p className="hidden sm:block">• <strong>Use layer controls</strong> to toggle data layers</p>
-          </div>
-          <div className="mt-2 text-xs text-green-600 font-medium">
-            {filteredClaims.length} claims, {pattaHolders.length} patta holders
-          </div>
-        </div>
       </div>
     </div>
   );
