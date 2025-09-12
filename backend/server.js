@@ -2,20 +2,13 @@ import pool from './db.js';
 import express from 'express';
 import cors from 'cors';
 import createFRATables from './createFRATables.js';
-import {
-  getFRAClaimsByState,
-  getFRAStatsByDistrict,
-  getFRAVillages,
-  getVillageAssets,
-  getSchemeRecommendations,
-  addFRAClaim,
-  getPattaHoldersByClaimId,
-  getPattaHoldersByState,
-  getPattaHoldersCoordinates,
-  getLandParcels,
-  getEnhancedVillageData,
-  getVillageBoundaries
-} from './controllers/fraController.js';
+
+// Import organized routes
+import fraRoutes from './routes/fraRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import decisionSupportRoutes from './routes/decisionSupportRoutes.js';
+import documentsRoutes from './routes/documentsRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
 
 // Initialize database tables
 (async () => {
@@ -37,21 +30,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// FRA Atlas API Routes
-app.get('/api/fra/claims/:state', getFRAClaimsByState);
-app.get('/api/fra/stats/:state/:district', getFRAStatsByDistrict);
-app.get('/api/fra/villages', getFRAVillages);
-app.get('/api/fra/assets/:villageId', getVillageAssets);
-app.get('/api/fra/recommendations/:villageId', getSchemeRecommendations);
-app.post('/api/fra/claims', addFRAClaim);
-
-// Patta holder and land parcel routes
-app.get('/api/fra/patta-holders/claim/:claimId', getPattaHoldersByClaimId);
-app.get('/api/fra/patta-holders/state/:state', getPattaHoldersByState);
-app.get('/api/fra/patta-holders/coordinates', getPattaHoldersCoordinates);
-app.get('/api/fra/land-parcels/:claimId', getLandParcels);
-app.get('/api/fra/village-enhanced/:villageId', getEnhancedVillageData);
-app.get('/api/fra/village-boundaries', getVillageBoundaries);
+// Use organized routes
+app.use('/api/fra', fraRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/decision-support', decisionSupportRoutes);
+app.use('/api/documents', documentsRoutes);
+app.use('/api/support', supportRoutes);
 
 // Health check endpoint
 

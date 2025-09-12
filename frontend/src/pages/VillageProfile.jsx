@@ -54,13 +54,13 @@ const VillageProfile = () => {
   const fetchEnhancedVillageData = async () => {
     setEnhancedError(null);
     try {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/village-enhanced/${villageId}`);
+      const response = await fetch(`http://localhost:4000/api/fra/villages/${villageId}/enhanced`);
       const data = await response.json();
       if (data.success) {
-        setEnhancedData(data.data);
+        setEnhancedData(data);
       } else {
         setEnhancedData(null);
-        setEnhancedError('No enhanced data found.');
+        setEnhancedError('No enhanced data found for this village.');
       }
     } catch (error) {
       setEnhancedData(null);
@@ -70,69 +70,36 @@ const VillageProfile = () => {
 
   const fetchVillageData = async () => {
     try {
-      // For prototype, we'll use mock data since we don't have village-specific endpoints yet
-      const mockVillageData = {
-        id: villageId,
-        village_name: villageId,
-        district: 'Seoni',
-        state: 'Madhya Pradesh',
-        latitude: 22.0850,
-        longitude: 79.9740,
-        tribal_group: 'Gond',
-        total_households: 45,
-        tribal_households: 38,
-        total_population: 210,
-        tribal_population: 180,
-        fra_claims: [
-          {
-            claim_id: 'FRA_MP_001',
-            applicant_name: 'Ramesh Kumar',
-            claim_type: 'IFR',
-            area_claimed: 2.5,
-            status: 'granted'
-          }
-        ]
-      };
-      setVillageData(mockVillageData);
+      const response = await fetch(`http://localhost:4000/api/fra/villages/${villageId}/enhanced`);
+      const data = await response.json();
+
+      if (data.success) {
+        setVillageData(data.village);
+        setEnhancedData(data);
+      } else {
+        setVillageData(null);
+        setEnhancedError('Village data not found.');
+      }
     } catch (error) {
       console.error('Error fetching village data:', error);
+      setVillageData(null);
+      setEnhancedError('Error fetching village data.');
     }
   };
 
   const fetchVillageAssets = async () => {
     setLoading(true);
     try {
-  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/assets/${villageId}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/assets/${villageId}`);
       const data = await response.json();
       
       if (data.success) {
         setAssets(data.data);
       } else {
-        // Mock asset data for prototype
-        setAssets([
-          {
-            id: 1,
-            asset_type: 'water_body',
-            asset_subtype: 'pond',
-            latitude: 22.0860,
-            longitude: 79.9750,
-            area_sqm: 5000,
-            confidence_score: 0.92
-          },
-          {
-            id: 2,
-            asset_type: 'agricultural_land',
-            asset_subtype: 'crop_field',
-            latitude: 22.0840,
-            longitude: 79.9730,
-            area_sqm: 25000,
-            confidence_score: 0.88
-          }
-        ]);
+        setAssets([]);
       }
     } catch (error) {
       console.error('Error fetching village assets:', error);
-      // Use mock data on error
       setAssets([]);
     }
     setLoading(false);
@@ -169,7 +136,7 @@ const VillageProfile = () => {
                       onChange={(e) => handleVillageSelect(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
-                      <option value="">-- Select a Village --</option>
+                      <option value="" disabled>-- Select a Village --</option>
                       {villages.map((village) => (
                         <option key={village.village_id} value={village.village_name}>
                           {village.village_name}, {village.district}, {village.state}
@@ -259,7 +226,7 @@ const VillageProfile = () => {
                     onChange={(e) => handleVillageSelect(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="">-- Select a Village --</option>
+                    <option value="" disabled>-- Select a Village --</option>
                     {villages.map((village) => (
                       <option key={village.village_name} value={village.village_name}>
                         {village.village_name}, {village.district}, {village.state}

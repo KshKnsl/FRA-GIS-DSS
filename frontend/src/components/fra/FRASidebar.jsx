@@ -31,7 +31,7 @@ const FRASidebar = ({
   pattaHolders
 }) => {
   return (
-    <aside className="w-80 bg-white shadow-lg overflow-y-auto">
+    <aside className="w-80 bg-white shadow-lg overflow-y-auto z-[1050]" style={{zIndex:1050}}>
       <div className="p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-4">
           FRA Atlas Control Panel
@@ -233,7 +233,7 @@ const FRASidebar = ({
             onChange={(e) => setSelectedDistrict(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">-- Select District --</option>
+            <option value="" disabled>-- Select District --</option>
             {uniqueDistricts.map((d) => (
               <option key={d} value={d}>
                 {d}
