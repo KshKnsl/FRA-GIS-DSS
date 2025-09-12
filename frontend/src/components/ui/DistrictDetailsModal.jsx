@@ -2,11 +2,6 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from './card';
 import { Badge } from './badge';
-
-import React from 'react';
-import { X } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from './card';
-import { Badge } from './badge';
 import { ScrollArea } from './scroll-area';
 
 const Modal = ({ isOpen, onClose, children }) => {

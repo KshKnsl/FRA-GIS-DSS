@@ -2,17 +2,14 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
-  X, 
   Map, 
   BarChart3, 
   Users,
-  Home,
   ChevronRight,
   ChevronDown,
   MapPin,
   TreePine,
-  Award,
-  Settings
+  Award
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
