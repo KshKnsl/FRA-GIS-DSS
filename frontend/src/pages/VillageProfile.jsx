@@ -22,7 +22,7 @@ const VillageProfile = () => {
   const fetchEnhancedVillageData = async () => {
     setEnhancedError(null);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/village-enhanced/${villageId}`);
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/village-enhanced/${villageId}`);
       const data = await response.json();
       if (data.success) {
         setEnhancedData(data.data);
@@ -70,7 +70,7 @@ const VillageProfile = () => {
   const fetchVillageAssets = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/assets/${villageId}`);
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/assets/${villageId}`);
       const data = await response.json();
       
       if (data.success) {

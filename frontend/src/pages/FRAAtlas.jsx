@@ -81,7 +81,7 @@ const FRAAtlas = () => {
   const fetchAllFRAVillages = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/villages`);
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages`);
       const data = await response.json();
       if (data.success) {
         setFraVillages(data.data);
@@ -96,7 +96,7 @@ const FRAAtlas = () => {
 
   const fetchAllFRAClaims = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/claims`);
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/claims`);
       const data = await response.json();
       if (data.success) {
         setFraClaims(data.data);
@@ -110,7 +110,7 @@ const FRAAtlas = () => {
 
   const fetchAllPattaHolders = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/patta-holders`);
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/patta-holders`);
       const data = await response.json();
       if (data.success) {
         setPattaHolders(data.data);
@@ -139,7 +139,7 @@ const FRAAtlas = () => {
     if (!district) return;
     try {
       const response = await fetch(
-        `http://localhost:4000/api/fra/stats/${selectedState}/${encodeURIComponent(
+  `${import.meta.env.VITE_BACKEND_URL}/api/fra/stats/${selectedState}/${encodeURIComponent(
           district
         )}`
       );
@@ -164,7 +164,7 @@ const FRAAtlas = () => {
     setClaimSubmitting(true);
     setClaimSuccess(null);
     try {
-      const response = await fetch("http://localhost:4000/api/fra/claims", {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/claims`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(claimForm),
@@ -201,7 +201,7 @@ const FRAAtlas = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:4000/api/fra/villages?state=${selectedState}`
+  `${import.meta.env.VITE_BACKEND_URL}/api/fra/villages?state=${selectedState}`
       );
       const data = await response.json();
 
@@ -220,7 +220,7 @@ const FRAAtlas = () => {
   const fetchFRAClaims = async () => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/fra/claims/${selectedState}`
+  `${import.meta.env.VITE_BACKEND_URL}/api/fra/claims/${selectedState}`
       );
       const data = await response.json();
 
@@ -238,7 +238,7 @@ const FRAAtlas = () => {
   const fetchPattaHolders = async () => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/fra/patta-holders/state/${selectedState}`
+  `${import.meta.env.VITE_BACKEND_URL}/api/fra/patta-holders/state/${selectedState}`
       );
       const data = await response.json();
 

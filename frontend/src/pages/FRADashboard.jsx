@@ -15,7 +15,7 @@ const FRADashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/dashboard/${state}`);
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/dashboard/${state}`);
       const data = await response.json();
       
       if (data.success) {

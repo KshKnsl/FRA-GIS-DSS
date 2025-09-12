@@ -15,7 +15,7 @@ const FRAClaimPopup = ({ claim }) => {
     setErrorPatta(null);
     try {
       const response = await fetch(
-        `http://localhost:4000/api/fra/patta-holders/claim/${claim.id}`
+  `${import.meta.env.VITE_BACKEND_URL}/api/fra/patta-holders/claim/${claim.id}`
       );
       const data = await response.json();
       if (data.success) {
@@ -34,7 +34,7 @@ const FRAClaimPopup = ({ claim }) => {
     setErrorLand(null);
     try {
       const response = await fetch(
-        `http://localhost:4000/api/fra/land-parcels/${claim.id}`
+  `${import.meta.env.VITE_BACKEND_URL}/api/fra/land-parcels/${claim.id}`
       );
       const data = await response.json();
       if (data.success) {

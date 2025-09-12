@@ -4,12 +4,13 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo \"No build step defined\""
   },
   "keywords": ["FRA", "Forest Rights Act", "WebGIS", "Decision Support System"],
   "author": "Ministry of Tribal Affairs",
   "license": "ISC",
-  "type":"module",
+  "type": "module",
   "description": "Backend for AI-powered FRA Atlas and WebGIS-based Decision Support System",
   "dependencies": {
     "cors": "^2.8.5",
