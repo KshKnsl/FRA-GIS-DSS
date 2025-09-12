@@ -10,11 +10,31 @@ const VillageProfile = () => {
   const [villageData, setVillageData] = useState(null);
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [enhancedData, setEnhancedData] = useState(null);
+  const [enhancedError, setEnhancedError] = useState(null);
 
   useEffect(() => {
     fetchVillageData();
     fetchVillageAssets();
+    fetchEnhancedVillageData();
   }, [villageId]);
+
+  const fetchEnhancedVillageData = async () => {
+    setEnhancedError(null);
+    try {
+      const response = await fetch(`http://localhost:4000/api/fra/village-enhanced/${villageId}`);
+      const data = await response.json();
+      if (data.success) {
+        setEnhancedData(data.data);
+      } else {
+        setEnhancedData(null);
+        setEnhancedError('No enhanced data found.');
+      }
+    } catch (error) {
+      setEnhancedData(null);
+      setEnhancedError('Error fetching enhanced data.');
+    }
+  };
 
   const fetchVillageData = async () => {
     try {
@@ -107,7 +127,7 @@ const VillageProfile = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+  {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
@@ -136,6 +156,27 @@ const VillageProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Village Information */}
           <div className="space-y-6">
+            {/* Enhanced Data Card */}
+            {enhancedData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Enhanced Village Data</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(enhancedData).map(([key, value]) => (
+                      <div key={key}>
+                        <p className="text-sm text-gray-600 capitalize">{key.replace(/_/g, ' ')}</p>
+                        <p className="font-medium text-xs break-all">{String(value)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {enhancedError && (
+              <div className="p-3 bg-red-50 text-red-700 rounded text-xs mb-2">{enhancedError}</div>
+            )}
             {/* Basic Information */}
             <Card>
               <CardHeader>

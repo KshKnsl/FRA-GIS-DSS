@@ -20,9 +20,7 @@ import {
   try {
     const res = await pool.query('SELECT NOW()');
     console.log('Connected to PostgreSQL:', res.rows[0]);
-    
-    // Create FRA tables and insert sample data
-    await createFRATables();
+        await createFRATables();
     
   } catch (err) {
     console.error('Database connection error:', err);

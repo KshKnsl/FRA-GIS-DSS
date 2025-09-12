@@ -3,6 +3,8 @@ import pool from './db.js';
 // Create FRA-specific tables
 export const createFRATables = async () => {
   try {
+    // Always drop patta_holders table before creating (for dev/demo safety)
+    await pool.query(`DROP TABLE IF EXISTS patta_holders CASCADE`);
     // FRA Claims table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS fra_claims (
@@ -109,8 +111,8 @@ export const createFRATables = async () => {
         electricity_connection BOOLEAN DEFAULT FALSE,
         road_connectivity VARCHAR(20) CHECK (road_connectivity IN ('Good', 'Fair', 'Poor', 'None')),
         mobile_number VARCHAR(15),
-        bank_account_number VARCHAR(20),
-        ifsc_code VARCHAR(15),
+          bank_account_number VARCHAR(30),
+          ifsc_code VARCHAR(20),
         aadhaar_number VARCHAR(12),
         voter_id VARCHAR(20),
         issue_date DATE,

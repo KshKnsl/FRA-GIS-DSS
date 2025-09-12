@@ -98,10 +98,10 @@ export const getFRAVillages = async (req, res) => {
 // Get asset mapping data for a village
 export const getVillageAssets = async (req, res) => {
   try {
-    const { villageId } = req.params;
+    const { villageName } = req.params;
     const result = await pool.query(
-      `SELECT * FROM village_assets WHERE village_id = $1`,
-      [villageId]
+      `SELECT * FROM village_assets WHERE village_name = $1`,
+      [villageName]
     );
     
     res.status(200).json({
@@ -192,7 +192,7 @@ export const getSchemeRecommendations = async (req, res) => {
 // Add new FRA claim
 export const addFRAClaim = async (req, res) => {
   try {
-    const {
+    let {
       claim_id,
       applicant_name,
       village_name,
@@ -205,7 +205,13 @@ export const addFRAClaim = async (req, res) => {
       longitude,
       tribal_group
     } = req.body;
-    
+
+    // Auto-generate claim_id if not provided
+    if (!claim_id || claim_id === "") {
+      const prefix = (state && state.length > 1 ? state.slice(0,2).toUpperCase() : "XX");
+      claim_id = `FRA_${prefix}_${Date.now()}`;
+    }
+
     const result = await pool.query(
       `INSERT INTO fra_claims 
        (claim_id, applicant_name, village_name, district, state, claim_type, 
@@ -215,7 +221,7 @@ export const addFRAClaim = async (req, res) => {
       [claim_id, applicant_name, village_name, district, state, claim_type, 
        area_claimed, status, latitude, longitude, tribal_group]
     );
-    
+
     res.status(201).json({
       success: true,
       data: result.rows[0]
@@ -310,7 +316,7 @@ export const getEnhancedVillageData = async (req, res) => {
     
     // Get FRA claims for the village
     const claimsResult = await pool.query(
-      `SELECT * FROM fra_claims WHERE village_name = $1 OR id = $1`,
+      `SELECT * FROM fra_claims WHERE village_name = $1 OR id::text = $1`,
       [villageId]
     );
     
