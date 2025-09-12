@@ -335,41 +335,8 @@ const FRAAtlas = () => {
   ).sort();
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-100">
-      {/* Mobile/Tablet: Sidebar in Sheet, Desktop: Fixed sidebar */}
-      <div className="lg:hidden">
-        {/* Mobile controls will be handled by the NavigationSidebar */}
-      </div>
-      
-      <div className="hidden lg:block">
-        <FRASidebar
-          targetStates={targetStates}
-          selectedState={selectedState}
-          setSelectedState={setSelectedState}
-          showClaimModal={showClaimModal}
-          setShowClaimModal={setShowClaimModal}
-          claimForm={claimForm}
-          handleClaimFormChange={handleClaimFormChange}
-          handleClaimSubmit={handleClaimSubmit}
-          claimSubmitting={claimSubmitting}
-          claimSuccess={claimSuccess}
-          uniqueDistricts={uniqueDistricts}
-          selectedDistrict={selectedDistrict}
-          setSelectedDistrict={setSelectedDistrict}
-          districtStats={districtStats}
-          selectedClaimType={selectedClaimType}
-          setSelectedClaimType={setSelectedClaimType}
-          showCoverageAreas={showCoverageAreas}
-          setShowCoverageAreas={setShowCoverageAreas}
-          showPattaHolders={showPattaHolders}
-          setShowPattaHolders={setShowPattaHolders}
-          fraVillages={fraVillages}
-          fraClaims={fraClaims}
-          filteredClaims={filteredClaims}
-          pattaHolders={pattaHolders}
-        />
-      </div>
-      
+    <div className="flex flex-col h-screen bg-gray-100">
+      {/* NavigationSidebar is now the only sidebar; content is always visible */}
       <div className="flex-1 relative">
         {loading && (
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-white px-3 py-2 rounded-md shadow-lg">

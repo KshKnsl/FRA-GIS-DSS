@@ -301,12 +301,12 @@ const FRASidebar = ({
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h3>
           <div className="space-y-2">
-            <a
-              href={`/fra-dashboard/${selectedState}`}
+            <Link
+              to={`/fra-dashboard/${selectedState}`}
               className="block w-full px-4 py-2 bg-green-600 text-white text-center rounded-md hover:bg-green-700 transition-colors"
             >
               View Dashboard
-            </a>
+            </Link>
           </div>
         </div>
 
