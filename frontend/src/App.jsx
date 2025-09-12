@@ -4,7 +4,6 @@ import Header from './components/Header';
 import FRAAtlas from './pages/FRAAtlas';
 import FRADashboard from './pages/FRADashboard';
 import VillageProfile from './pages/VillageProfile';
-import SchemeRecommendations from './pages/SchemeRecommendations';
 
 function App() {
   return (
@@ -16,8 +15,8 @@ function App() {
             <Routes>
               <Route path="/" element={<FRAAtlas />} />
               <Route path="/fra-dashboard/:state" element={<FRADashboard />} />
+              <Route path="/village" element={<VillageProfile />} />
               <Route path="/village/:villageId" element={<VillageProfile />} />
-              <Route path="/schemes/:villageId" element={<SchemeRecommendations />} />
             </Routes>
           </main>
         </div>

@@ -8,8 +8,7 @@ import {
   ChevronRight,
   ChevronDown,
   MapPin,
-  TreePine,
-  Award
+  TreePine
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { ScrollArea } from './ui/scroll-area';
@@ -39,6 +38,9 @@ const NavigationSidebar = () => {
   ];
 
   const isActive = (path) => {
+    if (path === '/village') {
+      return location.pathname === '/village' || location.pathname.startsWith('/village/');
+    }
     return location.pathname === path;
   };
 
@@ -132,10 +134,10 @@ const NavigationSidebar = () => {
             </h3>
             
             <Link
-              to="/village/sample"
+              to="/village"
               className={cn(
                 "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive('/village/sample')
+                isActive('/village')
                   ? "bg-blue-100 text-blue-700 border border-blue-200"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               )}
@@ -143,20 +145,6 @@ const NavigationSidebar = () => {
             >
               <Users className="w-4 h-4" />
               <span>Village Profile</span>
-            </Link>
-
-            <Link
-              to="/schemes/sample"
-              className={cn(
-                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive('/schemes/sample')
-                  ? "bg-purple-100 text-purple-700 border border-purple-200"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              )}
-              onClick={() => setIsOpen(false)}
-            >
-              <Award className="w-4 h-4" />
-              <span>Scheme Recommendations</span>
             </Link>
           </div>
         </nav>

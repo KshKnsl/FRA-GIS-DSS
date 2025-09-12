@@ -101,18 +101,14 @@ const FRAMap = ({
                         Total Pattas: {village.total_pattas}
                       </p>
                       <div className="mt-2 space-y-1">
-                        <a
-                          href={`/village/${village.village_name}`}
+                        
+                        <link
+                          to={`/village/${village.village_name}`}
                           className="block px-3 py-1 bg-green-600 text-white text-xs text-center rounded hover:bg-green-700"
+                          style={{ textDecoration: "none" }}
                         >
                           View Profile
-                        </a>
-                        <a
-                          href={`/schemes/${village.village_name}`}
-                          className="block px-3 py-1 bg-blue-600 text-white text-xs text-center rounded hover:bg-blue-700"
-                        >
-                          Scheme Recommendations
-                        </a>
+                        </link>
                       </div>
                     </div>
                   </Popup>

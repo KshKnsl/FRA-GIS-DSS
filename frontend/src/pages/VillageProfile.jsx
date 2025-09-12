@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -7,17 +7,49 @@ import 'leaflet/dist/leaflet.css';
 
 const VillageProfile = () => {
   const { villageId } = useParams();
+  const navigate = useNavigate();
   const [villageData, setVillageData] = useState(null);
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enhancedData, setEnhancedData] = useState(null);
   const [enhancedError, setEnhancedError] = useState(null);
+  const [villages, setVillages] = useState([]);
+  const [selectedVillage, setSelectedVillage] = useState(villageId || '');
+  const [villagesLoading, setVillagesLoading] = useState(true);
 
   useEffect(() => {
-    fetchVillageData();
-    fetchVillageAssets();
-    fetchEnhancedVillageData();
+    fetchVillagesList();
+  }, []);
+
+  useEffect(() => {
+    if (villageId) {
+      setSelectedVillage(villageId);
+      fetchVillageData();
+      fetchVillageAssets();
+      fetchEnhancedVillageData();
+    }
   }, [villageId]);
+
+  const fetchVillagesList = async () => {
+    setVillagesLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        setVillages(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching villages:', error);
+    }
+    setVillagesLoading(false);
+  };
+
+  const handleVillageSelect = (villageName) => {
+    if (villageName) {
+      setSelectedVillage(villageName);
+      navigate(`/village/${encodeURIComponent(villageName)}`);
+    }
+  };
 
   const fetchEnhancedVillageData = async () => {
     setEnhancedError(null);
@@ -106,6 +138,72 @@ const VillageProfile = () => {
     setLoading(false);
   };
 
+  // Show village selector if no village is selected
+  if (!villageId) {
+    return (
+      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Village Profile</h1>
+            <p className="text-gray-600">Select a village to view its detailed profile and information</p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Village</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {villagesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                  <span className="ml-2">Loading villages...</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Choose a village to view its profile:
+                    </label>
+                    <select
+                      value={selectedVillage}
+                      onChange={(e) => handleVillageSelect(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="">-- Select a Village --</option>
+                      {villages.map((village) => (
+                        <option key={village.village_id} value={village.village_name}>
+                          {village.village_name}, {village.district}, {village.state}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {villages.length === 0 && (
+                    <div className="text-center py-4 text-gray-500">
+                      No villages found in the database.
+                    </div>
+                  )}
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-800 mb-2">Available Villages</h4>
+                    <div className="text-sm text-blue-700">
+                      Total villages in database: <strong>{villages.length}</strong>
+                    </div>
+                    {villages.length > 0 && (
+                      <div className="mt-2 text-xs text-blue-600">
+                        Villages from: {[...new Set(villages.map(v => v.state))].join(', ')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (loading || !villageData) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -143,14 +241,38 @@ const VillageProfile = () => {
               >
                 Back to Atlas
               </Link>
-              <Link 
-                to={`/schemes/${villageId}`}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center text-sm"
-              >
-                View Schemes
-              </Link>
             </div>
           </div>
+        </div>
+
+        {/* Village Selector */}
+        <div className="mb-4 sm:mb-6">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Switch Village:
+                  </label>
+                  <select
+                    value={selectedVillage}
+                    onChange={(e) => handleVillageSelect(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="">-- Select a Village --</option>
+                    {villages.map((village) => (
+                      <option key={village.village_name} value={village.village_name}>
+                        {village.village_name}, {village.district}, {village.state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="text-sm text-gray-500">
+                  {villages.length} villages available
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
