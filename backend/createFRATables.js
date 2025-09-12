@@ -16,6 +16,7 @@ export const createFRATables = async () => {
     await pool.query(`DROP TABLE IF EXISTS village_boundaries CASCADE`);
     await pool.query(`DROP TABLE IF EXISTS village_summary CASCADE`);
     await pool.query(`DROP TABLE IF EXISTS fra_claims CASCADE`);
+    await pool.query(`DROP TABLE IF EXISTS documents CASCADE`);
     console.log('All existing tables dropped successfully');
     // FRA Claims table - Primary table for all claims
     await pool.query(`
@@ -190,9 +191,57 @@ export const createFRATables = async () => {
       )
     `);
 
+    // Documents table for FRA document management
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS documents (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(200) NOT NULL,
+        description TEXT,
+        category VARCHAR(50) CHECK (category IN ('patta', 'claim_form', 'identity_proof', 'land_records', 'court_orders', 'other')) NOT NULL,
+        state VARCHAR(50) NOT NULL,
+        district VARCHAR(50),
+        village VARCHAR(100),
+        claim_id VARCHAR(50) REFERENCES fra_claims(claim_id) ON DELETE SET NULL,
+        document_type VARCHAR(50),
+        tags JSONB DEFAULT '[]',
+        file_path VARCHAR(500) NOT NULL,
+        file_size INTEGER,
+        mime_type VARCHAR(100),
+        status VARCHAR(20) CHECK (status IN ('pending_verification', 'verified', 'rejected', 'archived')) DEFAULT 'pending_verification',
+        verified_by VARCHAR(100),
+        verification_remarks TEXT,
+        verified_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Support tickets table for user support system
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS support_tickets (
+        id SERIAL PRIMARY KEY,
+        ticket_id VARCHAR(50) UNIQUE NOT NULL,
+        subject VARCHAR(200) NOT NULL,
+        description TEXT NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        priority VARCHAR(20) CHECK (priority IN ('low', 'medium', 'high', 'urgent')) DEFAULT 'medium',
+        status VARCHAR(20) CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')) DEFAULT 'open',
+        user_name VARCHAR(100) NOT NULL,
+        user_email VARCHAR(100) NOT NULL,
+        user_phone VARCHAR(15),
+        state VARCHAR(50),
+        district VARCHAR(50),
+        village VARCHAR(100),
+        claim_id VARCHAR(50) REFERENCES fra_claims(claim_id) ON DELETE SET NULL,
+        response TEXT,
+        assigned_to VARCHAR(100),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     console.log('FRA tables created successfully');
     
-    // Insert sample data
     await insertSampleData();
     
   } catch (error) {
@@ -203,9 +252,7 @@ export const createFRATables = async () => {
 // Insert sample data for prototype
 const insertSampleData = async () => {
   try {
-    // Comprehensive FRA claims data for the four target states
     const sampleClaims = [
-      // Madhya Pradesh - More detailed claims
       ['FRA_MP_001', 'Ramesh Kumar', 'Deen Dayal', 'Barghat', 'Seoni', 'Madhya Pradesh', 'IFR', 2.5, 'granted', 22.0850, 79.9740, 'Gond', 5, 35000, 'Farmer', '2020-01-15', '2021-03-15'],
       ['FRA_MP_002', 'Sita Devi', 'Raman Singh', 'Kanha', 'Mandla', 'Madhya Pradesh', 'CR', 15.0, 'pending', 22.3344, 80.6114, 'Baiga', 4, 28000, 'Forest Produce Collection', '2020-02-10', null],
       ['FRA_MP_003', 'Bharat Singh', 'Lakhan Singh', 'Pench', 'Chhindwara', 'Madhya Pradesh', 'CFR', 100.0, 'granted', 21.6637, 79.0046, 'Gond', 8, 45000, 'Community Leader', '2019-11-20', '2021-01-25'],
@@ -303,31 +350,215 @@ const insertSampleData = async () => {
       `, asset);
     }
 
-    // Sample CSS schemes
+    // Sample CSS schemes with proper categories and array data
     const sampleSchemes = [
-      ['PM-KISAN', 'Ministry of Agriculture & Farmers Welfare', 'Financial Assistance', '{"land_ownership": true, "valid_documents": true}', 'Direct income support to farmers'],
-      ['Jal Jeevan Mission', 'Ministry of Jal Shakti', 'Infrastructure', '{"rural_household": true, "no_piped_water": true}', 'Piped water supply to rural households'],
-      ['MGNREGA', 'Ministry of Rural Development', 'Employment', '{"rural_household": true, "demand_based": true}', 'Employment guarantee scheme'],
-      ['Van Dhan Yojana', 'Ministry of Tribal Affairs', 'Livelihood', '{"tribal_community": true, "forest_products": true}', 'Value addition to tribal forest products']
+      {
+        scheme_name: 'PM-KISAN',
+        ministry: 'Ministry of Agriculture & Farmers Welfare',
+        scheme_type: 'Agriculture',
+        eligibility_criteria: ['Land holding < 2 hectares', 'Cultivator farmer', 'FRA patta holder', 'Annual income < ₹6 lakh'],
+        description: 'Direct income support to farmers through DBT'
+      },
+      {
+        scheme_name: 'Jal Jeevan Mission',
+        ministry: 'Ministry of Jal Shakti',
+        scheme_type: 'Water',
+        eligibility_criteria: ['Rural household', 'No piped water connection', 'FRA village', 'Government approved village'],
+        description: 'Piped water supply to rural households'
+      },
+      {
+        scheme_name: 'MGNREGA',
+        ministry: 'Ministry of Rural Development',
+        scheme_type: 'Employment',
+        eligibility_criteria: ['Rural household', 'Adult member available', 'Demand-based work', 'FRA beneficiary'],
+        description: 'Guaranteed wage employment for rural households'
+      },
+      {
+        scheme_name: 'Van Dhan Yojana',
+        ministry: 'Ministry of Tribal Affairs',
+        scheme_type: 'Livelihood',
+        eligibility_criteria: ['Tribal community', 'Forest products collection', 'FRA patta holder', 'SHG formation'],
+        description: 'Value addition to tribal forest products'
+      },
+      {
+        scheme_name: 'Pradhan Mantri Awas Yojana',
+        ministry: 'Ministry of Housing and Urban Affairs',
+        scheme_type: 'Housing',
+        eligibility_criteria: ['Rural household', 'No pucca house', 'FRA patta holder', 'BPL category'],
+        description: 'Housing for all rural households by 2022'
+      },
+      {
+        scheme_name: 'Mid-Day Meal Scheme',
+        ministry: 'Ministry of Education',
+        scheme_type: 'Nutrition',
+        eligibility_criteria: ['School children', 'Government school', 'Class 1-8', 'Tribal area'],
+        description: 'Nutritious meal to school children'
+      },
+      {
+        scheme_name: 'Deen Dayal Upadhyaya Grameen Kaushalya Yojana',
+        ministry: 'Ministry of Rural Development',
+        scheme_type: 'Skill Development',
+        eligibility_criteria: ['Rural youth', 'Age 15-35', 'FRA village', 'Below poverty line'],
+        description: 'Skill development and placement for rural youth'
+      },
+      {
+        scheme_name: 'National Rural Health Mission',
+        ministry: 'Ministry of Health and Family Welfare',
+        scheme_type: 'Infrastructure',
+        eligibility_criteria: ['Rural area', 'Tribal village', 'FRA settlement', 'Government approved'],
+        description: 'Comprehensive healthcare for rural population'
+      }
     ];
 
     for (const scheme of sampleSchemes) {
       await pool.query(`
-        INSERT INTO css_schemes 
+        INSERT INTO css_schemes
         (scheme_name, ministry, scheme_type, eligibility_criteria, description)
         VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT DO NOTHING
-      `, scheme);
+      `, [scheme.scheme_name, scheme.ministry, scheme.scheme_type, JSON.stringify(scheme.eligibility_criteria), scheme.description]);
     }
 
     console.log('Sample data inserted successfully');
     
-    // Insert sample village boundaries
-    await insertSampleBoundaries();
-    console.log('Sample village boundaries inserted successfully');
+    // Village summary with realistic data
+    const sampleVillageSummaries = [
+      {
+        village_name: 'Barghat',
+        district: 'Seoni',
+        state: 'Madhya Pradesh',
+        total_population: 2850,
+        tribal_population: 2100,
+        total_households: 620,
+        fra_pattas_count: 45,
+        forest_cover_percentage: 75.5,
+        agricultural_land_area: 450.8,
+        water_bodies_count: 3,
+        homesteads_count: 580
+      },
+      {
+        village_name: 'Kanha',
+        district: 'Mandla',
+        state: 'Madhya Pradesh',
+        total_population: 3200,
+        tribal_population: 2800,
+        total_households: 720,
+        fra_pattas_count: 62,
+        forest_cover_percentage: 85.2,
+        agricultural_land_area: 320.5,
+        water_bodies_count: 2,
+        homesteads_count: 680
+      },
+      {
+        village_name: 'Pench',
+        district: 'Chhindwara',
+        state: 'Madhya Pradesh',
+        total_population: 1950,
+        tribal_population: 1650,
+        total_households: 420,
+        fra_pattas_count: 38,
+        forest_cover_percentage: 68.9,
+        agricultural_land_area: 380.2,
+        water_bodies_count: 4,
+        homesteads_count: 395
+      },
+      {
+        village_name: 'Khowai',
+        district: 'Khowai',
+        state: 'Tripura',
+        total_population: 4100,
+        tribal_population: 3200,
+        total_households: 890,
+        fra_pattas_count: 78,
+        forest_cover_percentage: 45.3,
+        agricultural_land_area: 680.7,
+        water_bodies_count: 6,
+        homesteads_count: 850
+      },
+      {
+        village_name: 'Amarpur',
+        district: 'Gomati',
+        state: 'Tripura',
+        total_population: 2750,
+        tribal_population: 1950,
+        total_households: 580,
+        fra_pattas_count: 52,
+        forest_cover_percentage: 52.1,
+        agricultural_land_area: 520.3,
+        water_bodies_count: 5,
+        homesteads_count: 545
+      },
+      {
+        village_name: 'Similipal',
+        district: 'Mayurbhanj',
+        state: 'Odisha',
+        total_population: 4800,
+        tribal_population: 4100,
+        total_households: 1050,
+        fra_pattas_count: 95,
+        forest_cover_percentage: 92.4,
+        agricultural_land_area: 280.6,
+        water_bodies_count: 3,
+        homesteads_count: 980
+      },
+      {
+        village_name: 'Karlapat',
+        district: 'Kalahandi',
+        state: 'Odisha',
+        total_population: 3600,
+        tribal_population: 2900,
+        total_households: 780,
+        fra_pattas_count: 68,
+        forest_cover_percentage: 78.6,
+        agricultural_land_area: 420.8,
+        water_bodies_count: 4,
+        homesteads_count: 735
+      },
+      {
+        village_name: 'Kawal',
+        district: 'Jannaram',
+        state: 'Telangana',
+        total_population: 5200,
+        tribal_population: 3800,
+        total_households: 1150,
+        fra_pattas_count: 110,
+        forest_cover_percentage: 88.7,
+        agricultural_land_area: 350.4,
+        water_bodies_count: 2,
+        homesteads_count: 1080
+      },
+      {
+        village_name: 'Eturnagaram',
+        district: 'Mulugu',
+        state: 'Telangana',
+        total_population: 3900,
+        tribal_population: 3100,
+        total_households: 850,
+        fra_pattas_count: 82,
+        forest_cover_percentage: 71.3,
+        agricultural_land_area: 480.9,
+        water_bodies_count: 5,
+        homesteads_count: 810
+      }
+    ];
 
-    // Insert sample patta holders data
-    await insertPattaHoldersData();
+    for (const summary of sampleVillageSummaries) {
+      await pool.query(`
+        INSERT INTO village_summary
+        (village_name, district, state, total_population, tribal_population, total_households,
+         fra_pattas_count, forest_cover_percentage, agricultural_land_area, water_bodies_count, homesteads_count)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT DO NOTHING
+      `, [
+        summary.village_name, summary.district, summary.state, summary.total_population,
+        summary.tribal_population, summary.total_households, summary.fra_pattas_count,
+        summary.forest_cover_percentage, summary.agricultural_land_area, summary.water_bodies_count,
+        summary.homesteads_count
+      ]);
+    }
+
+    // Insert sample documents data
+    await insertSampleDocuments();
 
   } catch (error) {
     console.error('Error inserting sample data:', error);
@@ -430,6 +661,34 @@ const insertSampleBoundaries = async () => {
     }
   } catch (error) {
     console.error('Error inserting sample boundaries:', error);
+  }
+};
+
+const insertSampleDocuments = async () => {
+  try {
+    const sampleDocuments = [
+      ['FRA Patta Document - Barghat', 'Official FRA patta document for Ramesh Kumar', 'patta', 'Madhya Pradesh', 'Seoni', 'Barghat', 'FRA_MP_001', 'patta_certificate', '["official", "verified"]', '/uploads/fra_patta_mp_001.pdf', 2048000, 'application/pdf', 'verified', 'SDO Seoni', 'Document verified and authenticated', '2021-03-15'],
+      ['Claim Form - Kanha', 'FRA claim application form for Sita Devi', 'claim_form', 'Madhya Pradesh', 'Mandla', 'Kanha', 'FRA_MP_002', 'application_form', '["pending", "review"]', '/uploads/claim_form_mp_002.pdf', 1536000, 'application/pdf', 'pending_verification', null, null, null],
+      ['Identity Proof - Pench', 'Aadhaar card copy for Bharat Singh', 'identity_proof', 'Madhya Pradesh', 'Chhindwara', 'Pench', 'FRA_MP_003', 'aadhaar_card', '["identity", "verified"]', '/uploads/aadhaar_mp_003.pdf', 512000, 'application/pdf', 'verified', 'SDO Chhindwara', 'Identity verified', '2021-01-25'],
+      ['Land Records - Satpura', 'Survey documents for Kamala Bai', 'land_records', 'Madhya Pradesh', 'Betul', 'Satpura', 'FRA_MP_004', 'survey_document', '["land", "survey"]', '/uploads/land_records_mp_004.pdf', 3072000, 'application/pdf', 'verified', 'SDO Betul', 'Land records authenticated', '2021-05-20'],
+      ['Court Order - Khowai', 'Tribunal court order for Bijoy Tripura', 'court_orders', 'Tripura', 'Khowai', 'Khowai', 'FRA_TR_001', 'court_order', '["court", "tribunal"]', '/uploads/court_order_tr_001.pdf', 1024000, 'application/pdf', 'verified', 'Tribunal Court', 'Court order verified', '2021-04-12'],
+      ['Identity Proof - Similipal', 'Voter ID for Jagan Pradhan', 'identity_proof', 'Odisha', 'Mayurbhanj', 'Similipal', 'FRA_OD_001', 'voter_id', '["identity", "election"]', '/uploads/voter_id_od_001.pdf', 768000, 'application/pdf', 'verified', 'Election Officer', 'Voter ID verified', '2021-02-15'],
+      ['Claim Form - Kawal', 'FRA claim form for Venkat Goud', 'claim_form', 'Telangana', 'Jannaram', 'Kawal', 'FRA_TG_001', 'application_form', '["application", "pending"]', '/uploads/claim_form_tg_001.pdf', 2048000, 'application/pdf', 'pending_verification', null, null, null]
+    ];
+
+    for (const doc of sampleDocuments) {
+      await pool.query(`
+        INSERT INTO documents
+        (title, description, category, state, district, village, claim_id, document_type, tags, file_path, file_size, mime_type, status, verified_by, verification_remarks, verified_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        ON CONFLICT DO NOTHING
+      `, doc);
+    }
+
+    console.log('Sample documents data inserted successfully');
+
+  } catch (error) {
+    console.error('Error inserting sample documents:', error);
   }
 };
 

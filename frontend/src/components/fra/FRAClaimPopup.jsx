@@ -21,7 +21,7 @@ const FRAClaimPopup = ({ claim }) => {
       if (data.success) {
         setPattaHolders(data.data);
       } else {
-        setErrorPatta("No patta holders found.");
+        setErrorPatta("No patta holders found for this claim.");
       }
     } catch (e) {
       setErrorPatta("Error fetching patta holders.");
@@ -40,7 +40,7 @@ const FRAClaimPopup = ({ claim }) => {
       if (data.success) {
         setLandParcels(data.data);
       } else {
-        setErrorLand("No land parcels found.");
+        setErrorLand("No land parcels found for this claim.");
       }
     } catch (e) {
       setErrorLand("Error fetching land parcels.");
@@ -54,13 +54,13 @@ const FRAClaimPopup = ({ claim }) => {
         <CardTitle className="text-base">FRA Claim Details</CardTitle>
       </CardHeader>
       <CardContent className="space-y-1 text-sm">
-        <div><span className="font-medium">Community:</span> {claim.community_name}</div>
-        <div><span className="font-medium">Type:</span> {claim.claim_type}</div>
-        <div><span className="font-medium">Area:</span> {claim.area_hectares} hectares</div>
-        <div><span className="font-medium">Status:</span> <span className={`ml-1 px-2 py-1 rounded text-xs ${claim.status === "Approved" ? "bg-green-100 text-green-800" : claim.status === "Pending" ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}>{claim.status}</span></div>
-        <div><span className="font-medium">Village:</span> {claim.village_name}</div>
-        <div><span className="font-medium">District:</span> {claim.district}</div>
-        <div><span className="font-medium">Date Applied:</span> {new Date(claim.date_applied).toLocaleDateString()}</div>
+        <div><span className="font-medium">Community:</span> {claim.community_name || 'N/A'}</div>
+        <div><span className="font-medium">Type:</span> {claim.claim_type || 'N/A'}</div>
+        <div><span className="font-medium">Area:</span> {claim.area_hectares ? `${claim.area_hectares} hectares` : 'N/A'}</div>
+        <div><span className="font-medium">Status:</span> <span className={`ml-1 px-2 py-1 rounded text-xs ${claim.status === "Approved" ? "bg-green-100 text-green-800" : claim.status === "Pending" ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}>{claim.status || 'N/A'}</span></div>
+        <div><span className="font-medium">Village:</span> {claim.village_name || 'N/A'}</div>
+        <div><span className="font-medium">District:</span> {claim.district || 'N/A'}</div>
+        <div><span className="font-medium">Date Applied:</span> {claim.date_applied ? new Date(claim.date_applied).toLocaleDateString() : 'N/A'}</div>
         {claim.date_approved && <div><span className="font-medium">Date Approved:</span> {new Date(claim.date_approved).toLocaleDateString()}</div>}
         {claim.remarks && <div><span className="font-medium">Remarks:</span> {claim.remarks}</div>}
         <Button size="sm" className="mt-3 bg-purple-600 hover:bg-purple-700" onClick={fetchPattaHolders} disabled={loadingPatta}>
@@ -70,8 +70,8 @@ const FRAClaimPopup = ({ claim }) => {
         {pattaHolders && (
           <div className="mt-2">
             <div className="font-medium text-xs text-gray-700 mb-1">Patta Holders:</div>
-            <ul className="text-xs text-gray-800 space-y-1 max-h-32 overflow-y-auto">
-              {pattaHolders.length === 0 && <li>No patta holders found.</li>}
+            <ul className="text-xs text-foreground space-y-1 max-h-32 overflow-y-auto">
+              {pattaHolders.length === 0 && <li>No patta holders found for this claim.</li>}
               {pattaHolders.map((holder) => (
                 <li key={holder.id} className="border-b pb-1 mb-1">
                   <div><span className="font-semibold">{holder.holder_name}</span> ({holder.patta_number})</div>
@@ -89,8 +89,8 @@ const FRAClaimPopup = ({ claim }) => {
         {landParcels && (
           <div className="mt-2">
             <div className="font-medium text-xs text-gray-700 mb-1">Land Parcels:</div>
-            <ul className="text-xs text-gray-800 space-y-1 max-h-32 overflow-y-auto">
-              {landParcels.length === 0 && <li>No land parcels found.</li>}
+            <ul className="text-xs text-foreground space-y-1 max-h-32 overflow-y-auto">
+              {landParcels.length === 0 && <li>No land parcels found for this claim.</li>}
               {landParcels.map((parcel) => (
                 <li key={parcel.id} className="border-b pb-1 mb-1">
                   <div><span className="font-semibold">Parcel #{parcel.id}</span></div>

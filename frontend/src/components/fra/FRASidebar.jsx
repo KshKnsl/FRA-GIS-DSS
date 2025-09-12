@@ -31,9 +31,9 @@ const FRASidebar = ({
   pattaHolders
 }) => {
   return (
-    <aside className="w-80 bg-white shadow-lg overflow-y-auto">
+    <aside className="w-80 bg-white shadow-lg overflow-y-auto z-[1050]" style={{zIndex:1050}}>
       <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">
+        <h2 className="text-xl font-bold text-foreground mb-4">
           FRA Atlas Control Panel
         </h2>
         {/* Add FRA Claim Button */}
@@ -49,14 +49,14 @@ const FRASidebar = ({
             <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
               <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative z-[10000]">
                 <button
-                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                  className="absolute top-2 right-2 text-gray-500 hover:text-foreground"
                   onClick={() => {
                     setShowClaimModal(false);
                   }}
                 >
                   &times;
                 </button>
-                <h2 className="text-lg font-bold mb-4 text-gray-800">
+                <h2 className="text-lg font-bold mb-4 text-foreground">
                   Submit New FRA Claim
                 </h2>
                 <form onSubmit={handleClaimSubmit} className="space-y-3">
@@ -233,7 +233,7 @@ const FRASidebar = ({
             onChange={(e) => setSelectedDistrict(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">-- Select District --</option>
+            <option value="" disabled>-- Select District --</option>
             {uniqueDistricts.map((d) => (
               <option key={d} value={d}>
                 {d}

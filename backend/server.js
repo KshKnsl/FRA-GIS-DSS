@@ -2,22 +2,13 @@ import pool from './db.js';
 import express from 'express';
 import cors from 'cors';
 import createFRATables from './createFRATables.js';
-import {
-  getFRAClaimsByState,
-  getFRAStatsByDistrict,
-  getFRAVillages,
-  getVillageAssets,
-  getSchemeRecommendations,
-  addFRAClaim,
-  getPattaHoldersByClaimId,
-  getPattaHoldersByState,
-  getPattaHoldersCoordinates,
-  getLandParcels,
-  getEnhancedVillageData,
-  getVillageBoundaries
-} from './controllers/fraController.js';
 
-// Initialize database tables
+import fraRoutes from './routes/fraRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import decisionSupportRoutes from './routes/decisionSupportRoutes.js';
+import documentsRoutes from './routes/documentsRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
+
 (async () => {
   try {
     const res = await pool.query('SELECT NOW()');
@@ -37,30 +28,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// FRA Atlas API Routes
-app.get('/api/fra/claims/:state', getFRAClaimsByState);
-app.get('/api/fra/stats/:state/:district', getFRAStatsByDistrict);
-app.get('/api/fra/villages', getFRAVillages);
-app.get('/api/fra/assets/:villageId', getVillageAssets);
-app.get('/api/fra/recommendations/:villageId', getSchemeRecommendations);
-app.post('/api/fra/claims', addFRAClaim);
+app.use('/api/fra', fraRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/decision-support', decisionSupportRoutes);
+app.use('/api/documents', documentsRoutes);
+app.use('/api/support', supportRoutes);
 
-// Patta holder and land parcel routes
-app.get('/api/fra/patta-holders/claim/:claimId', getPattaHoldersByClaimId);
-app.get('/api/fra/patta-holders/state/:state', getPattaHoldersByState);
-app.get('/api/fra/patta-holders/coordinates', getPattaHoldersCoordinates);
-app.get('/api/fra/land-parcels/:claimId', getLandParcels);
-app.get('/api/fra/village-enhanced/:villageId', getEnhancedVillageData);
-app.get('/api/fra/village-boundaries', getVillageBoundaries);
 
-// Health check endpoint
-
-// Dashboard summary endpoint
 app.get('/api/fra/dashboard/:state', async (req, res) => {
   try {
     const { state } = req.params;
-    
-    // Get overall statistics
     const statsResult = await pool.query(`
       SELECT 
         COUNT(*) as total_claims,
@@ -74,7 +51,6 @@ app.get('/api/fra/dashboard/:state', async (req, res) => {
       WHERE state = $1
     `, [state]);
     
-    // Get district-wise breakdown
     const districtResult = await pool.query(`
       SELECT 
         district,
@@ -101,12 +77,10 @@ app.get('/api/fra/dashboard/:state', async (req, res) => {
   }
 });
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'FRA Atlas API is running',
-    timestamp: new Date().toISOString()
   });
 });
 

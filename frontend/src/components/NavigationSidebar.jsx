@@ -1,180 +1,176 @@
 import React, { useState } from 'react';
+import { useSidebar } from './SidebarContext';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Menu, 
-  Map, 
-  BarChart3, 
-  Users,
-  ChevronRight,
-  ChevronDown,
-  MapPin,
-  TreePine,
-  Award
-} from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { BarChart3, Users, ChevronRight, ChevronLeft, TreePine, Home } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
-import { Badge } from './ui/badge';
 import { cn } from '../lib/utils';
 
+const NAV_ITEMS = [
+  { label: 'Dashboard', icon: <BarChart3 className="w-4 h-4" />, to: '/fra-dashboard/Madhya Pradesh' },
+  { label: 'FRA Atlas', icon: <TreePine className="w-4 h-4" />, to: '/' },
+  { label: 'Village Profile', icon: <Home className="w-4 h-4" />, to: '/village' },
+  { label: 'Decision Support', icon: <ChevronRight className="w-4 h-4" />, to: '/decision-support' },
+  { label: 'Documents', icon: <ChevronRight className="w-4 h-4" />, to: '/documents' },
+  { label: 'Admin', icon: <Users className="w-4 h-4" />, to: '/admin' },
+  { label: 'Support & Help', icon: <ChevronRight className="w-4 h-4" />, to: '/support-help' },
+];
+
 const NavigationSidebar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState({
-    dashboards: false
-  });
   const location = useLocation();
+  const { sidebarOpen } = useSidebar();
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  // Emit collapse state to App.jsx
+  React.useEffect(() => {
+    window.dispatchEvent(new CustomEvent('sidebar-collapse', { detail: { collapsed } }));
+  }, [collapsed]);
+  const [search, setSearch] = useState('');
+  const [theme, setTheme] = useState('light');
+
+  const handleThemeToggle = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark');
   };
 
-  const states = [
-    { name: 'Madhya Pradesh', code: 'MP' },
-    { name: 'Tripura', code: 'TR' },
-    { name: 'Odisha', code: 'OD' },
-    { name: 'Telangana', code: 'TG' }
-  ];
+  const filteredNavItems = NAV_ITEMS.filter(item =>
+    item.label.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
-
-  const isActiveState = (state) => {
-    return location.pathname.includes(`/fra-dashboard/${state}`);
-  };
-
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="p-6 border-b">
+  const MobileSidebarContent = () => (
+    <div className="flex flex-col h-full bg-background text-foreground w-full">
+      {/* Header */}
+      <div className="p-4 border-b border-border">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-            <TreePine className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <TreePine className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-bold text-lg text-gray-900">FRA Atlas</h2>
-            <p className="text-xs text-gray-500">Forest Rights Act</p>
+            <h2 className="font-bold text-lg text-foreground">FRA Atlas</h2>
+            <p className="text-xs text-muted-foreground">Forest Rights Act</p>
           </div>
         </div>
+        <span className="text-xs font-semibold text-primary bg-secondary rounded px-2 py-1 w-fit mt-2 inline-block">Prototype v1.0</span>
       </div>
 
+      {/* Navigation */}
       <ScrollArea className="flex-1 p-4">
         <nav className="space-y-2">
-          {/* Main Map */}
-          <Link
-            to="/"
-            className={cn(
-              "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-              isActive('/') 
-                ? "bg-green-100 text-green-700 border border-green-200" 
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            )}
-            onClick={() => setIsOpen(false)}
-          >
-            <Map className="w-4 h-4" />
-            <span>Interactive Atlas</span>
-          </Link>
-
-          <Separator className="my-4" />
-
-          {/* Dashboards Section */}
-          <div>
-            <button
-              onClick={() => toggleSection('dashboards')}
-              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <BarChart3 className="w-4 h-4" />
-                <span>Dashboards</span>
-              </div>
-              {expandedSections.dashboards ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-            </button>
-
-            {expandedSections.dashboards && (
-              <div className="ml-7 mt-2 space-y-1">
-                {states.map((state) => (
-                  <Link
-                    key={state.code}
-                    to={`/fra-dashboard/${state.name}`}
-                    className={cn(
-                      "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors",
-                      isActiveState(state.name)
-                        ? "bg-green-50 text-green-700 border-l-2 border-green-500"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    )}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-3 h-3" />
-                      <span>{state.name}</span>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {state.code}
-                    </Badge>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <Separator className="my-4" />
-
-          {/* Quick Actions */}
-          <div className="space-y-1">
-            <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Quick Actions
-            </h3>
-            
+          {filteredNavItems.map(item => (
             <Link
-              to="/village/sample"
+              key={item.to}
+              to={item.to}
               className={cn(
-                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive('/village/sample')
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors',
+                location.pathname === item.to
+                  ? 'bg-secondary text-primary border border-border'
+                  : 'hover:bg-muted hover:text-foreground text-muted-foreground'
               )}
-              onClick={() => setIsOpen(false)}
             >
-              <Users className="w-4 h-4" />
-              <span>Village Profile</span>
+              {item.icon}
+              <span>{item.label}</span>
             </Link>
-
-            <Link
-              to="/schemes/sample"
-              className={cn(
-                "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive('/schemes/sample')
-                  ? "bg-purple-100 text-purple-700 border border-purple-200"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              )}
-              onClick={() => setIsOpen(false)}
-            >
-              <Award className="w-4 h-4" />
-              <span>Scheme Recommendations</span>
-            </Link>
-          </div>
+          ))}
         </nav>
       </ScrollArea>
 
-      <div className="p-4 border-t mt-auto">
-        <div className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-gray-50">
-          <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">G</span>
+      {/* Theme Toggle */}
+      <div className="p-4 border-t border-border">
+        <Button variant="outline" size="sm" onClick={handleThemeToggle} className="w-full">
+          Toggle Theme
+        </Button>
+      </div>
+
+      {/* User Info */}
+      <div className="p-4 border-t border-border mt-auto">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-r from-primary to-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-primary-foreground text-sm font-medium">G</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              Government User
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              Ministry of Tribal Affairs
-            </p>
+            <p className="text-sm font-medium text-primary truncate">Government User</p>
+            <p className="text-xs text-muted-foreground truncate">Ministry of Tribal Affairs</p>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SidebarContent = () => (
+    <div className={cn('flex flex-col h-full bg-background text-foreground transition-all duration-300', collapsed ? 'w-20' : 'w-72')}>
+      {/* Top controls */}
+      <div className="flex flex-col gap-2 p-4 border-b border-border">
+        <div className="flex gap-2 items-center justify-between">
+          {!collapsed && (
+            <Button variant="outline" size="sm" onClick={() => setCollapsed(true)}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          )}
+          {!collapsed && (
+            <Button variant="outline" size="sm" onClick={handleThemeToggle}>
+              Toggle Theme
+            </Button>
+          )}
+        </div>
+        {!collapsed && (
+          <Input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="mt-2"
+          />
+        )}
+      </div>
+      <div className="p-6 border-b border-border flex flex-col gap-2">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <TreePine className="w-5 h-5 text-primary-foreground" />
+          </div>
+          {!collapsed && (
+            <div>
+              <h2 className="font-bold text-lg text-foreground">FRA Atlas</h2>
+              <p className="text-xs text-muted-foreground">Forest Rights Act</p>
+            </div>
+          )}
+        </div>
+        {!collapsed && (
+          <span className="text-xs font-semibold text-primary bg-secondary rounded px-2 py-1 w-fit">Prototype v1.0</span>
+        )}
+      </div>
+      <ScrollArea className={cn('flex-1 p-4', collapsed ? 'p-2' : 'p-4')}>
+        <nav className="space-y-1">
+          {filteredNavItems.map(item => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                location.pathname === item.to
+                  ? 'bg-secondary text-primary border border-border'
+                  : 'hover:bg-muted hover:text-foreground text-muted-foreground'
+              )}
+            >
+              {item.icon}
+              {!collapsed && <span>{item.label}</span>}
+            </Link>
+          ))}
+        </nav>
+      </ScrollArea>
+      <div className="p-4 border-t border-border mt-auto">
+        <div className={cn('flex items-center px-3 py-2 rounded-lg bg-secondary', collapsed ? 'justify-center' : 'space-x-3')}>
+          <div className="w-8 h-8 bg-gradient-to-r from-primary to-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-primary-foreground text-sm font-medium">G</span>
+          </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-primary truncate">Government User</p>
+              <p className="text-xs text-muted-foreground truncate">Ministry of Tribal Affairs</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -182,27 +178,65 @@ const NavigationSidebar = () => {
 
   return (
     <>
-      {/* Mobile Sidebar */}
-      <div className="lg:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <Menu className="w-5 h-5" />
-              <span className="sr-only">Open navigation</span>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
-      </div>
+      {/* Mobile Sidebar Trigger */}
+      <Button
+        variant="default"
+        size="sm"
+        className="fixed top-4 left-4 z-50 lg:hidden bg-primary text-primary-foreground border-2 border-primary shadow-lg hover:bg-primary/90"
+        onClick={() => setMobileOpen(true)}
+      >
+        <ChevronRight className="w-5 h-5" />
+        <span className="sr-only">Open navigation menu</span>
+      </Button>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+          {/* Sidebar */}
+          <div className="fixed left-0 top-0 h-full w-80 bg-background border-r border-border z-50 lg:hidden shadow-xl" style={{ backgroundColor: 'var(--background)' }}>
+            <div className="flex flex-col h-full">
+              {/* Close button */}
+              <div className="flex justify-end p-4 border-b border-border">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+              </div>
+              {/* Content */}
+              <div className="flex-1 overflow-hidden">
+                <MobileSidebarContent />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:z-40 lg:w-72">
-        <div className="flex flex-col bg-white border-r border-gray-200 h-full">
-          <SidebarContent />
-        </div>
-      </div>
+      {sidebarOpen && (
+        <>
+          <div className={cn('hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-40', collapsed ? 'lg:w-20' : 'lg:w-72')}>
+            <SidebarContent />
+          </div>
+          {/* Floating expand button when collapsed */}
+          {collapsed && (
+            <button
+              className="hidden lg:flex fixed left-20 top-20 z-50 w-8 h-8 bg-primary text-primary-foreground rounded-full shadow-lg items-center justify-center hover:bg-primary/90 transition-colors"
+              onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+        </>
+      )}
     </>
   );
 };

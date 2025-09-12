@@ -8,11 +8,14 @@ const FRAMap = ({
   getClaimTypeIcon,
   getClaimTypeColor,
   isValidCoordinate,
+  showFraVillages,
   showCoverageAreas,
   filteredClaims,
   showPattaHolders,
   pattaHolders,
   selectedState,
+  baseMapLayer,
+  overlayOpacity = 0.5,
   L
 }) => {
   const [villageBoundaries, setVillageBoundaries] = useState(null);
@@ -31,7 +34,9 @@ const FRAMap = ({
         console.error('Error fetching village boundaries:', error);
       }
     };
-    fetchBoundaries();
+    if (selectedState !== 'All States') {
+      fetchBoundaries();
+    }
   }, [selectedState]);
 
   // Fetch patta holders with coordinates
@@ -47,80 +52,91 @@ const FRAMap = ({
         console.error('Error fetching patta holders coordinates:', error);
       }
     };
-    if (showPattaHolders) {
+    if (showPattaHolders && selectedState !== 'All States') {
       fetchPattaHolders();
     }
   }, [selectedState, showPattaHolders]);
+
+  // Map base layer URLs and attribution
+  const baseLayers = {
+    OpenStreetMap: {
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    },
+    Bhuvan: {
+      url: "https://bhuvan-vec2.nrsc.gov.in/bhuvan/wms?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=india&STYLE=default&TILEMATRIXSET=GoogleMapsCompatible&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=image/png",
+      attribution: '&copy; <a href="https://bhuvan.nrsc.gov.in/">ISRO Bhuvan</a>',
+    },
+    SurveyOfIndia: {
+      url: "https://soiapp.geoportal.gov.in/soiapp/tiles/{z}/{x}/{y}.png",
+      attribution: '&copy; <a href="https://surveyofindia.gov.in/">Survey of India</a>',
+    },
+    Esri: {
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      attribution: '&copy; <a href="https://www.esri.com/">Esri World Imagery</a>',
+    },
+  };
+
+  const selectedBaseLayer = baseLayers[baseMapLayer] || baseLayers.OpenStreetMap;
 
   return (
     <MapContainer
       center={mapCenter}
       zoom={7}
       style={{ height: "100%", width: "100%" }}
-      key={mapCenter.join("-")}
+      key={mapCenter.join("-") + baseMapLayer}
     >
+      <TileLayer
+        attribution={selectedBaseLayer.attribution}
+        url={selectedBaseLayer.url}
+      />
+      {/* ...existing overlays and features... */}
       <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="OpenStreetMap">
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite">
-          <TileLayer
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          />
-        </LayersControl.BaseLayer>
-        
-        <LayersControl.Overlay checked name="FRA Villages">
-          <FeatureGroup>
-            {filteredVillages
-              .filter((village) => isValidCoordinate(village.latitude, village.longitude))
-              .map((village, index) => (
-                <Marker
-                  key={index}
-                  position={[village.latitude, village.longitude]}
-                  icon={getClaimTypeIcon(village.claim_type)}
-                >
-                  <Popup>
-                    <div className="p-2">
-                      <h3 className="font-bold text-gray-800">
-                        {village.village_name}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {village.district}, {village.state}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Population: {village.population}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Forest Area: {village.forest_area_hectares} ha
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Total Pattas: {village.total_pattas}
-                      </p>
-                      <div className="mt-2 space-y-1">
-                        <a
-                          href={`/village/${village.village_name}`}
-                          className="block px-3 py-1 bg-green-600 text-white text-xs text-center rounded hover:bg-green-700"
-                        >
-                          View Profile
-                        </a>
-                        <a
-                          href={`/schemes/${village.village_name}`}
-                          className="block px-3 py-1 bg-blue-600 text-white text-xs text-center rounded hover:bg-blue-700"
-                        >
-                          Scheme Recommendations
-                        </a>
+        {showFraVillages && (
+          <LayersControl.Overlay checked name="FRA Villages">
+            <FeatureGroup>
+              {filteredVillages
+                .filter((village) => isValidCoordinate(village.latitude, village.longitude))
+                .map((village, index) => (
+                  <Marker
+                    key={index}
+                    position={[village.latitude, village.longitude]}
+                    icon={getClaimTypeIcon(village.claim_type)}
+                    opacity={overlayOpacity}
+                  >
+                    <Popup>
+                      <div className="p-2">
+                        <h3 className="font-bold text-foreground">
+                          {village.village_name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {village.district}, {village.state}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Population: {village.population}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Forest Area: {village.forest_area_hectares} ha
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Total Pattas: {village.total_pattas}
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          <a
+                            href={`/village/${village.village_name}`}
+                            className="block px-3 py-1 bg-green-600 text-white text-xs text-center rounded hover:bg-green-700"
+                            style={{ textDecoration: "none", color: "white" }}
+                          >
+                            View Profile
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-          </FeatureGroup>
-        </LayersControl.Overlay>
-        
+                    </Popup>
+                  </Marker>
+                ))}
+            </FeatureGroup>
+          </LayersControl.Overlay>
+        )}
         {showCoverageAreas && (
           <LayersControl.Overlay checked name="FRA Coverage Areas">
             <FeatureGroup>
@@ -136,7 +152,7 @@ const FRAMap = ({
                       radius={radius}
                       pathOptions={{
                         fillColor: color,
-                        fillOpacity: 0.5,
+                        fillOpacity: overlayOpacity,
                         color: color,
                         weight: 3,
                         opacity: 0.9,
@@ -151,7 +167,6 @@ const FRAMap = ({
             </FeatureGroup>
           </LayersControl.Overlay>
         )}
-        
         {villageBoundaries && (
           <LayersControl.Overlay name="Village Boundaries">
             <GeoJSON
@@ -176,7 +191,6 @@ const FRAMap = ({
             />
           </LayersControl.Overlay>
         )}
-        
         {showPattaHolders && (
           <LayersControl.Overlay checked name="Patta Holders">
             <FeatureGroup>
@@ -192,6 +206,7 @@ const FRAMap = ({
                       iconSize: [28, 28],
                       iconAnchor: [14, 14],
                     })}
+                    opacity={overlayOpacity}
                   >
                     <Popup>
                       <div className="p-3 min-w-[280px]">

@@ -1,26 +1,17 @@
 import pool from '../db.js';
 
-// Get all FRA claims for a specific state
 export const getFRAClaimsByState = async (req, res) => {
-  try {
-    const { state } = req.params;
-    const result = await pool.query(
-      `SELECT * FROM fra_claims WHERE state = $1 ORDER BY created_at DESC`,
-      [state]
-    );
-    
-    res.status(200).json({
-      success: true,
-      data: result.rows,
-      count: result.rowCount
-    });
-  } catch (error) {
-    console.error('Error fetching FRA claims:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching FRA claims'
-    });
-  }
+  const { state } = req.params;
+  const result = await pool.query(
+    `SELECT * FROM fra_claims WHERE state = $1 ORDER BY created_at DESC`,
+    [state]
+  );
+  
+  res.status(200).json({
+    success: true,
+    data: result.rows,
+    count: result.rowCount
+  });
 };
 
 // Get FRA statistics by district
@@ -83,7 +74,6 @@ export const getFRAStatsByDistrict = async (req, res) => {
       data: responseData,
     });
   } catch (error) {
-    console.error('Error fetching FRA statistics:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching FRA statistics'
@@ -93,63 +83,47 @@ export const getFRAStatsByDistrict = async (req, res) => {
 
 // Get all villages with FRA pattas
 export const getFRAVillages = async (req, res) => {
-  try {
-    const { state } = req.query;
-    let query = `
-      SELECT DISTINCT 
-        village_name,
-        district,
-        state,
-        latitude,
-        longitude,
-        COUNT(*) as total_pattas
-      FROM fra_claims 
-      WHERE status = 'granted'
-    `;
-    
-    let params = [];
-    if (state) {
-      query += ` AND state = $1`;
-      params.push(state);
-    }
-    
-    query += ` GROUP BY village_name, district, state, latitude, longitude`;
-    
-    const result = await pool.query(query, params);
-    
-    res.status(200).json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Error fetching FRA villages:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching FRA villages'
-    });
+  const { state } = req.query;
+  let query = `
+    SELECT DISTINCT 
+      village_name,
+      district,
+      state,
+      latitude,
+      longitude,
+      COUNT(*) as total_pattas
+    FROM fra_claims 
+    WHERE status = 'granted'
+  `;
+  
+  let params = [];
+  if (state) {
+    query += ` AND state = $1`;
+    params.push(state);
   }
+  
+  query += ` GROUP BY village_name, district, state, latitude, longitude`;
+  
+  const result = await pool.query(query, params);
+  
+  res.status(200).json({
+    success: true,
+    data: result.rows
+  });
 };
 
 // Get asset mapping data for a village
 export const getVillageAssets = async (req, res) => {
-  try {
-    const { villageName } = req.params;
-    const result = await pool.query(
-      `SELECT * FROM village_assets WHERE village_name = $1`,
-      [villageName]
-    );
-    
-    res.status(200).json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Error fetching village assets:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching village assets'
-    });
-  }
+  const { villageName } = req.params;
+  const result = await pool.query(
+    `SELECT * FROM village_assets WHERE village_name = $1`,
+    [villageName]
+  );
+  
+  res.status(200).json({
+    success: true,
+    data: result.rows
+  });
 };
 
 // Get scheme eligibility recommendations
@@ -216,7 +190,6 @@ export const getSchemeRecommendations = async (req, res) => {
       recommendations: recommendations
     });
   } catch (error) {
-    console.error('Error generating scheme recommendations:', error);
     res.status(500).json({
       success: false,
       message: 'Error generating recommendations'
@@ -262,7 +235,6 @@ export const addFRAClaim = async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error('Error adding FRA claim:', error);
     res.status(500).json({
       success: false,
       message: 'Error adding FRA claim'
@@ -272,27 +244,19 @@ export const addFRAClaim = async (req, res) => {
 
 // Get patta holders by claim ID
 export const getPattaHoldersByClaimId = async (req, res) => {
-  try {
-    const { claimId } = req.params;
-    const result = await pool.query(
-      `SELECT ph.*, fc.village_name, fc.district, fc.state 
-       FROM patta_holders ph 
-       JOIN fra_claims fc ON ph.claim_id = fc.claim_id 
-       WHERE ph.claim_id = $1`,
-      [claimId]
-    );
-    
-    res.status(200).json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Error fetching patta holders:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching patta holders'
-    });
-  }
+  const { claimId } = req.params;
+  const result = await pool.query(
+    `SELECT ph.*, fc.village_name, fc.district, fc.state 
+     FROM patta_holders ph 
+     JOIN fra_claims fc ON ph.claim_id = fc.claim_id 
+     WHERE ph.claim_id = $1`,
+    [claimId]
+  );
+  
+  res.status(200).json({
+    success: true,
+    data: result.rows
+  });
 };
 
 // Get all patta holders for a state
@@ -314,7 +278,6 @@ export const getPattaHoldersByState = async (req, res) => {
       count: result.rowCount
     });
   } catch (error) {
-    console.error('Error fetching patta holders by state:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching patta holders'
@@ -324,24 +287,16 @@ export const getPattaHoldersByState = async (req, res) => {
 
 // Get land parcel details for a claim
 export const getLandParcels = async (req, res) => {
-  try {
-    const { claimId } = req.params;
-    const result = await pool.query(
-      `SELECT * FROM land_parcels WHERE claim_id = $1 ORDER BY created_at DESC`,
-      [claimId]
-    );
-    
-    res.status(200).json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Error fetching land parcels:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching land parcels'
-    });
-  }
+  const { claimId } = req.params;
+  const result = await pool.query(
+    `SELECT * FROM land_parcels WHERE claim_id = $1 ORDER BY created_at DESC`,
+    [claimId]
+  );
+  
+  res.status(200).json({
+    success: true,
+    data: result.rows
+  });
 };
 
 // Get enhanced village data with patta holders
@@ -392,7 +347,6 @@ export const getEnhancedVillageData = async (req, res) => {
       assets: assetsResult.rows
     });
   } catch (error) {
-    console.error('Error fetching enhanced village data:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching enhanced village data'
@@ -440,7 +394,6 @@ export const getPattaHoldersCoordinates = async (req, res) => {
       count: result.rowCount
     });
   } catch (error) {
-    console.error('Error fetching patta holders coordinates:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching patta holders coordinates'
@@ -490,7 +443,6 @@ export const getVillageBoundaries = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching village boundaries:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching village boundaries'
