@@ -11,8 +11,10 @@ import {
   addFRAClaim,
   getPattaHoldersByClaimId,
   getPattaHoldersByState,
+  getPattaHoldersCoordinates,
   getLandParcels,
-  getEnhancedVillageData
+  getEnhancedVillageData,
+  getVillageBoundaries
 } from './controllers/fraController.js';
 
 // Initialize database tables
@@ -46,8 +48,12 @@ app.post('/api/fra/claims', addFRAClaim);
 // Patta holder and land parcel routes
 app.get('/api/fra/patta-holders/claim/:claimId', getPattaHoldersByClaimId);
 app.get('/api/fra/patta-holders/state/:state', getPattaHoldersByState);
+app.get('/api/fra/patta-holders/coordinates', getPattaHoldersCoordinates);
 app.get('/api/fra/land-parcels/:claimId', getLandParcels);
 app.get('/api/fra/village-enhanced/:villageId', getEnhancedVillageData);
+app.get('/api/fra/village-boundaries', getVillageBoundaries);
+
+// Health check endpoint
 
 // Dashboard summary endpoint
 app.get('/api/fra/dashboard/:state', async (req, res) => {

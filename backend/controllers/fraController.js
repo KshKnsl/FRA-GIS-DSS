@@ -364,3 +364,101 @@ export const getEnhancedVillageData = async (req, res) => {
     });
   }
 };
+
+// Get patta holders with coordinates for map display
+export const getPattaHoldersCoordinates = async (req, res) => {
+  try {
+    const { state } = req.query;
+    let query = `
+      SELECT 
+        ph.patta_number,
+        ph.holder_name,
+        ph.occupation,
+        ph.land_classification,
+        ph.latitude,
+        ph.longitude,
+        fc.village_name,
+        fc.district,
+        fc.state,
+        fc.claim_type,
+        fc.area_claimed
+      FROM patta_holders ph 
+      JOIN fra_claims fc ON ph.claim_id = fc.claim_id 
+      WHERE fc.status = 'granted' 
+        AND ph.latitude IS NOT NULL 
+        AND ph.longitude IS NOT NULL
+    `;
+    
+    let params = [];
+    if (state && state !== 'All States') {
+      query += ` AND fc.state = $1`;
+      params.push(state);
+    }
+    
+    query += ` ORDER BY ph.created_at DESC`;
+    
+    const result = await pool.query(query, params);
+    
+    res.status(200).json({
+      success: true,
+      data: result.rows,
+      count: result.rowCount
+    });
+  } catch (error) {
+    console.error('Error fetching patta holders coordinates:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching patta holders coordinates'
+    });
+  }
+};
+
+// Get village boundaries as GeoJSON
+export const getVillageBoundaries = async (req, res) => {
+  try {
+    const { state } = req.query;
+    let query = `
+      SELECT 
+        village_name,
+        district,
+        state,
+        area_sqkm,
+        ST_AsGeoJSON(boundary_geom) as geojson
+      FROM village_boundaries
+    `;
+    
+    let params = [];
+    if (state && state !== 'All States') {
+      query += ` WHERE state = $1`;
+      params.push(state);
+    }
+    
+    const result = await pool.query(query, params);
+    
+    // Convert to GeoJSON FeatureCollection
+    const features = result.rows.map(row => ({
+      type: 'Feature',
+      properties: {
+        village_name: row.village_name,
+        district: row.district,
+        state: row.state,
+        area_sqkm: row.area_sqkm
+      },
+      geometry: JSON.parse(row.geojson)
+    }));
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        type: 'FeatureCollection',
+        features: features
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching village boundaries:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching village boundaries'
+    });
+  }
+};

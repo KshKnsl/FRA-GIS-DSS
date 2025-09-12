@@ -3,6 +3,9 @@ import pool from './db.js';
 // Create FRA-specific tables
 export const createFRATables = async () => {
   try {
+    // Enable PostGIS extension
+    await pool.query(`CREATE EXTENSION IF NOT EXISTS postgis`);
+    
     // Always drop patta_holders table before creating (for dev/demo safety)
     await pool.query(`DROP TABLE IF EXISTS patta_holders CASCADE`);
     // FRA Claims table
@@ -43,6 +46,28 @@ export const createFRATables = async () => {
         satellite_image_date DATE,
         verified BOOLEAN DEFAULT FALSE
       )
+    `);
+
+    // Village Boundaries table with PostGIS geometry
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS village_boundaries (
+        id SERIAL PRIMARY KEY,
+        village_name VARCHAR(100) NOT NULL,
+        district VARCHAR(50) NOT NULL,
+        state VARCHAR(50) NOT NULL,
+        boundary_geom GEOMETRY(POLYGON, 4326),
+        area_sqkm DECIMAL(10,4),
+        perimeter_km DECIMAL(10,4),
+        source VARCHAR(50) DEFAULT 'survey',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    // Create spatial index for better performance
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_village_boundaries_geom 
+      ON village_boundaries USING GIST (boundary_geom)
     `);
 
     // Village summary for aggregated data
@@ -115,6 +140,8 @@ export const createFRATables = async () => {
           ifsc_code VARCHAR(20),
         aadhaar_number VARCHAR(12),
         voter_id VARCHAR(20),
+        latitude DECIMAL(10, 8),
+        longitude DECIMAL(11, 8),
         issue_date DATE,
         issuing_authority VARCHAR(100),
         verification_status VARCHAR(20) CHECK (verification_status IN ('Verified', 'Pending', 'Rejected')) DEFAULT 'Pending',
@@ -277,6 +304,10 @@ const insertSampleData = async () => {
     }
 
     console.log('Sample data inserted successfully');
+    
+    // Insert sample village boundaries
+    await insertSampleBoundaries();
+    console.log('Sample village boundaries inserted successfully');
 
     // Insert sample patta holders data
     await insertPattaHoldersData();
@@ -291,32 +322,32 @@ const insertPattaHoldersData = async () => {
   try {
     const samplePattaHolders = [
       // Madhya Pradesh Patta Holders
-      ['PH_MP_001', 'FRA_MP_001', 'Ramesh Kumar', 'Deen Dayal', 45, 'Male', 'Farmer', 35000, 6, 'Survey-234/2A', 'Agricultural', true, false, 'Fair', '9876543210', '1234567890123456', 'SBIN0001234', '123456789012', 'ABC1234567', '2021-03-15', 'Sub Divisional Officer, Seoni', 'Verified'],
-      ['PH_MP_004', 'FRA_MP_004', 'Kamala Bai', 'Ram Singh', 38, 'Female', 'Agriculture Labor', 25000, 5, 'Survey-456/1B', 'Forest Land', false, false, 'Poor', '9876543211', '2345678901234567', 'PUNB0002345', '234567890123', 'DEF2345678', '2021-05-20', 'Sub Divisional Officer, Betul', 'Verified'],
-      ['PH_MP_006', 'FRA_MP_006', 'Rukhmani Devi', 'Shyam Lal', 42, 'Female', 'Forest Produce Collection', 18000, 4, 'Survey-789/3C', 'Forest Land', false, false, 'Good', '9876543212', '3456789012345678', 'ICIC0003456', '345678901234', 'GHI3456789', '2021-07-10', 'Sub Divisional Officer, Mandla', 'Verified'],
-      ['PH_MP_008', 'FRA_MP_008', 'Sumitra Bai', 'Govind Singh', 35, 'Female', 'Small Business', 22000, 3, 'Survey-012/4D', 'Homestead', true, true, 'Good', '9876543213', '4567890123456789', 'HDFC0004567', '456789012345', 'JKL4567890', '2021-09-25', 'Sub Divisional Officer, Hoshangabad', 'Verified'],
+      ['PH_MP_001', 'FRA_MP_001', 'Ramesh Kumar', 'Deen Dayal', 45, 'Male', 'Farmer', 35000, 6, 'Survey-234/2A', 'Agricultural', true, false, 'Fair', '9876543210', '1234567890123456', 'SBIN0001234', '123456789012', 'ABC1234567', 22.0867, 79.7388, '2021-03-15', 'Sub Divisional Officer, Seoni', 'Verified'],
+      ['PH_MP_004', 'FRA_MP_004', 'Kamala Bai', 'Ram Singh', 38, 'Female', 'Agriculture Labor', 25000, 5, 'Survey-456/1B', 'Forest Land', false, false, 'Poor', '9876543211', '2345678901234567', 'PUNB0002345', '234567890123', 'DEF2345678', 21.9058, 77.7392, '2021-05-20', 'Sub Divisional Officer, Betul', 'Verified'],
+      ['PH_MP_006', 'FRA_MP_006', 'Rukhmani Devi', 'Shyam Lal', 42, 'Female', 'Forest Produce Collection', 18000, 4, 'Survey-789/3C', 'Forest Land', false, false, 'Good', '9876543212', '3456789012345678', 'ICIC0003456', '345678901234', 'GHI3456789', 22.9734, 80.9449, '2021-07-10', 'Sub Divisional Officer, Mandla', 'Verified'],
+      ['PH_MP_008', 'FRA_MP_008', 'Sumitra Bai', 'Govind Singh', 35, 'Female', 'Small Business', 22000, 3, 'Survey-012/4D', 'Homestead', true, true, 'Good', '9876543213', '4567890123456789', 'HDFC0004567', '456789012345', 'JKL4567890', 22.7520, 77.7273, '2021-09-25', 'Sub Divisional Officer, Hoshangabad', 'Verified'],
       
       // Tripura Patta Holders
-      ['PH_TR_001', 'FRA_TR_001', 'Bijoy Tripura', 'Ratna Tripura', 40, 'Male', 'Jhum Cultivation', 28000, 5, 'Survey-101/1A', 'Agricultural', false, false, 'Fair', '9876543214', '5678901234567890', 'AXIS0005678', '567890123456', 'MNO5678901', '2021-04-12', 'Sub Divisional Officer, Khowai', 'Verified'],
-      ['PH_TR_003', 'FRA_TR_003', 'Jiban Chakma', 'Kiran Chakma', 33, 'Male', 'Weaving', 32000, 4, 'Survey-202/2B', 'Homestead', true, true, 'Good', '9876543215', '6789012345678901', 'BOB0006789', '678901234567', 'PQR6789012', '2021-06-08', 'Sub Divisional Officer, Belonia', 'Verified'],
-      ['PH_TR_005', 'FRA_TR_005', 'Sabitri Mog', 'Anil Mog', 29, 'Female', 'Handloom', 26000, 3, 'Survey-303/3C', 'Agricultural', false, false, 'Fair', '9876543216', '7890123456789012', 'SBI0007890', '789012345678', 'STU7890123', '2021-08-15', 'Sub Divisional Officer, Teliamura', 'Verified'],
+      ['PH_TR_001', 'FRA_TR_001', 'Bijoy Tripura', 'Ratna Tripura', 40, 'Male', 'Jhum Cultivation', 28000, 5, 'Survey-101/1A', 'Agricultural', false, false, 'Fair', '9876543214', '5678901234567890', 'AXIS0005678', '567890123456', 'MNO5678901', 24.3198, 91.7478, '2021-04-12', 'Sub Divisional Officer, Khowai', 'Verified'],
+      ['PH_TR_003', 'FRA_TR_003', 'Jiban Chakma', 'Kiran Chakma', 33, 'Male', 'Weaving', 32000, 4, 'Survey-202/2B', 'Homestead', true, true, 'Good', '9876543215', '6789012345678901', 'BOB0006789', '678901234567', 'PQR6789012', 23.6269, 91.4270, '2021-06-08', 'Sub Divisional Officer, Belonia', 'Verified'],
+      ['PH_TR_005', 'FRA_TR_005', 'Sabitri Mog', 'Anil Mog', 29, 'Female', 'Handloom', 26000, 3, 'Survey-303/3C', 'Agricultural', false, false, 'Fair', '9876543216', '7890123456789012', 'SBI0007890', '789012345678', 'STU7890123', 23.8315, 91.2792, '2021-08-15', 'Sub Divisional Officer, Teliamura', 'Verified'],
       
       // Odisha Patta Holders
-      ['PH_OD_003', 'FRA_OD_003', 'Budhan Munda', 'Soma Munda', 48, 'Male', 'Forest Worker', 20000, 7, 'Survey-404/4D', 'Forest Land', false, false, 'Poor', '9876543217', '8901234567890123', 'UCO0008901', '890123456789', 'VWX8901234', '2021-02-28', 'Sub Divisional Officer, Sundargarh', 'Verified'],
-      ['PH_OD_006', 'FRA_OD_006', 'Devi Oram', 'Mangal Oram', 36, 'Female', 'NTFP Collection', 15000, 5, 'Survey-505/5E', 'Forest Land', false, false, 'Poor', '9876543218', '9012345678901234', 'CANARA0009012', '901234567890', 'YZA9012345', '2021-10-05', 'Sub Divisional Officer, Keonjhar', 'Verified'],
-      ['PH_OD_008', 'FRA_OD_008', 'Malati Sabar', 'Bhagat Sabar', 31, 'Female', 'Daily Wage', 12000, 4, 'Survey-606/6F', 'Agricultural', false, false, 'Fair', '9876543219', '0123456789012345', 'IDBI0000123', '012345678901', 'BCD0123456', '2021-11-20', 'Sub Divisional Officer, Dhenkanal', 'Verified'],
+      ['PH_OD_003', 'FRA_OD_003', 'Budhan Munda', 'Soma Munda', 48, 'Male', 'Forest Worker', 20000, 7, 'Survey-404/4D', 'Forest Land', false, false, 'Poor', '9876543217', '8901234567890123', 'UCO0008901', '890123456789', 'VWX8901234', 22.1167, 84.0512, '2021-02-28', 'Sub Divisional Officer, Sundargarh', 'Verified'],
+      ['PH_OD_006', 'FRA_OD_006', 'Devi Oram', 'Mangal Oram', 36, 'Female', 'NTFP Collection', 15000, 5, 'Survey-505/5E', 'Forest Land', false, false, 'Poor', '9876543218', '9012345678901234', 'CANARA0009012', '901234567890', 'YZA9012345', 21.6281, 85.8245, '2021-10-05', 'Sub Divisional Officer, Keonjhar', 'Verified'],
+      ['PH_OD_008', 'FRA_OD_008', 'Malati Sabar', 'Bhagat Sabar', 31, 'Female', 'Daily Wage', 12000, 4, 'Survey-606/6F', 'Agricultural', false, false, 'Fair', '9876543219', '0123456789012345', 'IDBI0000123', '012345678901', 'BCD0123456', 20.6593, 85.6188, '2021-11-20', 'Sub Divisional Officer, Dhenkanal', 'Verified'],
       
       // Telangana Patta Holders
-      ['PH_TG_002', 'FRA_TG_002', 'Anjamma', 'Ramulu', 44, 'Female', 'Agriculture', 30000, 6, 'Survey-707/7G', 'Agricultural', true, false, 'Good', '9876543220', '1234567890123457', 'ANDHRA0001234', '123456789013', 'EFG1234567', '2021-01-30', 'Sub Divisional Officer, Eturnagaram', 'Verified'],
-      ['PH_TG_004', 'FRA_TG_004', 'Lakshmi Chenchu', 'Venkat Chenchu', 39, 'Female', 'Honey Collection', 16000, 4, 'Survey-808/8H', 'Forest Land', false, false, 'Poor', '9876543221', '2345678901234568', 'UNION0002345', '234567890124', 'HIJ2345678', '2021-12-10', 'Sub Divisional Officer, Nagarjunsagar', 'Verified'],
-      ['PH_TG_007', 'FRA_TG_007', 'Krishna Pradhan', 'Ravi Pradhan', 52, 'Male', 'Community Leader', 45000, 8, 'Survey-909/9I', 'Community Land', true, true, 'Good', '9876543222', '3456789012345679', 'TELANGANA0003456', '345678901235', 'KLM3456789', '2021-03-25', 'Sub Divisional Officer, Eturunagaram', 'Verified']
+      ['PH_TG_002', 'FRA_TG_002', 'Anjamma', 'Ramulu', 44, 'Female', 'Agriculture', 30000, 6, 'Survey-707/7G', 'Agricultural', true, false, 'Good', '9876543220', '1234567890123457', 'ANDHRA0001234', '123456789013', 'EFG1234567', 18.8760, 80.1500, '2021-01-30', 'Sub Divisional Officer, Eturnagaram', 'Verified'],
+      ['PH_TG_004', 'FRA_TG_004', 'Lakshmi Chenchu', 'Venkat Chenchu', 39, 'Female', 'Honey Collection', 16000, 4, 'Survey-808/8H', 'Forest Land', false, false, 'Poor', '9876543221', '2345678901234568', 'UNION0002345', '234567890124', 'HIJ2345678', 16.1000, 79.2600, '2021-12-10', 'Sub Divisional Officer, Nagarjunsagar', 'Verified'],
+      ['PH_TG_007', 'FRA_TG_007', 'Krishna Pradhan', 'Ravi Pradhan', 52, 'Male', 'Community Leader', 45000, 8, 'Survey-909/9I', 'Community Land', true, true, 'Good', '9876543222', '3456789012345679', 'TELANGANA0003456', '345678901235', 'KLM3456789', 18.8760, 80.1500, '2021-03-25', 'Sub Divisional Officer, Eturunagaram', 'Verified']
     ];
 
     for (const holder of samplePattaHolders) {
       await pool.query(`
         INSERT INTO patta_holders 
-        (patta_number, claim_id, holder_name, father_husband_name, age, gender, occupation, annual_income, family_size, land_survey_number, land_classification, irrigation_facility, electricity_connection, road_connectivity, mobile_number, bank_account_number, ifsc_code, aadhaar_number, voter_id, issue_date, issuing_authority, verification_status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+        (patta_number, claim_id, holder_name, father_husband_name, age, gender, occupation, annual_income, family_size, land_survey_number, land_classification, irrigation_facility, electricity_connection, road_connectivity, mobile_number, bank_account_number, ifsc_code, aadhaar_number, voter_id, latitude, longitude, issue_date, issuing_authority, verification_status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
         ON CONFLICT (patta_number) DO NOTHING
       `, holder);
     }
@@ -342,6 +373,41 @@ const insertPattaHoldersData = async () => {
 
   } catch (error) {
     console.error('Error inserting sample data:', error);
+  }
+};
+
+// Insert sample village boundaries (simplified polygons)
+const insertSampleBoundaries = async () => {
+  try {
+    const sampleBoundaries = [
+      // Madhya Pradesh villages - simplified rectangular boundaries
+      ['Barghat', 'Seoni', 'Madhya Pradesh', 'POLYGON((79.9500 22.0700, 79.9800 22.0700, 79.9800 22.1000, 79.9500 22.1000, 79.9500 22.0700))', 2.5],
+      ['Kanha', 'Mandla', 'Madhya Pradesh', 'POLYGON((80.5900 22.3200, 80.6300 22.3200, 80.6300 22.3500, 80.5900 22.3500, 80.5900 22.3200))', 8.2],
+      ['Pench', 'Chhindwara', 'Madhya Pradesh', 'POLYGON((78.9800 21.6400, 79.0300 21.6400, 79.0300 21.6900, 78.9800 21.6900, 78.9800 21.6400))', 12.1],
+      
+      // Tripura villages
+      ['Khowai', 'Khowai', 'Tripura', 'POLYGON((91.5800 24.0500, 91.6300 24.0500, 91.6300 24.0900, 91.5800 24.0900, 91.5800 24.0500))', 3.2],
+      ['Amarpur', 'Gomati', 'Tripura', 'POLYGON((91.6500 23.5700, 91.6900 23.5700, 91.6900 23.6000, 91.6500 23.6000, 91.6500 23.5700))', 4.1],
+      
+      // Odisha villages
+      ['Similipal', 'Mayurbhanj', 'Odisha', 'POLYGON((86.4900 21.8400, 86.5500 21.8400, 86.5500 21.9000, 86.4900 21.9000, 86.4900 21.8400))', 15.6],
+      ['Karlapat', 'Kalahandi', 'Odisha', 'POLYGON((83.1200 19.9000, 83.1700 19.9000, 83.1700 19.9400, 83.1200 19.9400, 83.1200 19.9000))', 6.8],
+      
+      // Telangana villages
+      ['Kawal', 'Jannaram', 'Telangana', 'POLYGON((79.5700 19.0100, 79.6200 19.0100, 79.6200 19.0600, 79.5700 19.0600, 79.5700 19.0100))', 9.3],
+      ['Eturnagaram', 'Mulugu', 'Telangana', 'POLYGON((80.1300 18.3000, 80.1800 18.3000, 80.1800 18.3500, 80.1300 18.3500, 80.1300 18.3000))', 7.4]
+    ];
+
+    for (const boundary of sampleBoundaries) {
+      await pool.query(`
+        INSERT INTO village_boundaries 
+        (village_name, district, state, boundary_geom, area_sqkm)
+        VALUES ($1, $2, $3, ST_GeomFromText($4, 4326), $5)
+        ON CONFLICT DO NOTHING
+      `, boundary);
+    }
+  } catch (error) {
+    console.error('Error inserting sample boundaries:', error);
   }
 };
 

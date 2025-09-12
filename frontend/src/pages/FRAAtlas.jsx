@@ -381,6 +381,7 @@ const FRAAtlas = () => {
           filteredClaims={filteredClaims}
           showPattaHolders={showPattaHolders}
           pattaHolders={pattaHolders}
+          selectedState={selectedState}
           L={L}
         />
         {/* Map Info Panel */}

@@ -1,19 +1,57 @@
-import React from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, FeatureGroup } from "react-leaflet";
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, FeatureGroup, GeoJSON } from "react-leaflet";
 import FRAClaimPopup from "./FRAClaimPopup";
 
 const FRAMap = ({
   mapCenter,
   filteredVillages,
   getClaimTypeIcon,
-        getClaimTypeColor,
+  getClaimTypeColor,
   isValidCoordinate,
   showCoverageAreas,
   filteredClaims,
   showPattaHolders,
   pattaHolders,
+  selectedState,
   L
 }) => {
+  const [villageBoundaries, setVillageBoundaries] = useState(null);
+  const [pattaHoldersData, setPattaHoldersData] = useState([]);
+
+  // Fetch village boundaries
+  useEffect(() => {
+    const fetchBoundaries = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/village-boundaries?state=${selectedState}`);
+        const data = await response.json();
+        if (data.success) {
+          setVillageBoundaries(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching village boundaries:', error);
+      }
+    };
+    fetchBoundaries();
+  }, [selectedState]);
+
+  // Fetch patta holders with coordinates
+  useEffect(() => {
+    const fetchPattaHolders = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/patta-holders/coordinates?state=${selectedState}`);
+        const data = await response.json();
+        if (data.success) {
+          setPattaHoldersData(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching patta holders coordinates:', error);
+      }
+    };
+    if (showPattaHolders) {
+      fetchPattaHolders();
+    }
+  }, [selectedState, showPattaHolders]);
+
   return (
     <MapContainer
       center={mapCenter}
@@ -34,6 +72,7 @@ const FRAMap = ({
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
         </LayersControl.BaseLayer>
+        
         <LayersControl.Overlay checked name="FRA Villages">
           <FeatureGroup>
             {filteredVillages
@@ -81,13 +120,14 @@ const FRAMap = ({
               ))}
           </FeatureGroup>
         </LayersControl.Overlay>
+        
         {showCoverageAreas && (
           <LayersControl.Overlay checked name="FRA Coverage Areas">
             <FeatureGroup>
               {filteredClaims
-                .filter((claim) => isValidCoordinate(claim.latitude, claim.longitude) && claim.area_hectares)
+                .filter((claim) => isValidCoordinate(claim.latitude, claim.longitude) && claim.area_claimed)
                 .map((claim) => {
-                  const radius = Math.sqrt((claim.area_hectares * 10000) / Math.PI) * 0.8;
+                  const radius = Math.sqrt((claim.area_claimed * 10000) / Math.PI) * 2.5;
                   const color = getClaimTypeColor ? getClaimTypeColor(claim.claim_type) : "#6b7280";
                   return (
                     <Circle
@@ -96,10 +136,10 @@ const FRAMap = ({
                       radius={radius}
                       pathOptions={{
                         fillColor: color,
-                        fillOpacity: 0.3,
+                        fillOpacity: 0.5,
                         color: color,
-                        weight: 2,
-                        opacity: 0.7,
+                        weight: 3,
+                        opacity: 0.9,
                       }}
                     >
                       <Popup>
@@ -111,60 +151,89 @@ const FRAMap = ({
             </FeatureGroup>
           </LayersControl.Overlay>
         )}
+        
+        {villageBoundaries && (
+          <LayersControl.Overlay name="Village Boundaries">
+            <GeoJSON
+              data={villageBoundaries}
+              style={{
+                fillColor: 'transparent',
+                weight: 2,
+                opacity: 0.8,
+                color: '#ff7800',
+                dashArray: '5, 5'
+              }}
+              onEachFeature={(feature, layer) => {
+                layer.bindPopup(`
+                  <div>
+                    <h4><strong>${feature.properties.village_name}</strong></h4>
+                    <p>District: ${feature.properties.district}</p>
+                    <p>State: ${feature.properties.state}</p>
+                    <p>Area: ${feature.properties.area_sqkm} sq km</p>
+                  </div>
+                `);
+              }}
+            />
+          </LayersControl.Overlay>
+        )}
+        
         {showPattaHolders && (
           <LayersControl.Overlay checked name="Patta Holders">
             <FeatureGroup>
-              {pattaHolders
+              {pattaHoldersData
                 .filter((holder) => isValidCoordinate(holder.latitude, holder.longitude))
-                .map((holder) => (
+                .map((holder, index) => (
                   <Marker
-                    key={`patta-${holder.id}`}
+                    key={`patta-${holder.patta_number}-${index}`}
                     position={[holder.latitude, holder.longitude]}
                     icon={L.divIcon({
                       className: "custom-patta-marker",
-                      html: '<div style="background-color: #8b5cf6; width: 18px; height: 18px; border-radius: 3px; border: 2px solid white; display: flex; align-items: center; justify-content: center;"><span style="color: white; font-size: 10px; font-weight: bold;">P</span></div>',
-                      iconSize: [22, 22],
-                      iconAnchor: [11, 11],
+                      html: '<div style="background-color: #8b5cf6; width: 24px; height: 24px; border-radius: 4px; border: 2px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><span style="color: white; font-size: 12px; font-weight: bold;">P</span></div>',
+                      iconSize: [28, 28],
+                      iconAnchor: [14, 14],
                     })}
                   >
                     <Popup>
-                      <div className="p-2 min-w-[250px]">
-                        <h3 className="font-semibold text-gray-900 mb-2">
+                      <div className="p-3 min-w-[280px]">
+                        <h3 className="font-semibold text-gray-900 mb-2 text-lg">
                           Patta Holder Details
                         </h3>
-                        <div className="space-y-1 text-sm">
+                        <div className="space-y-2 text-sm">
                           <div>
-                            <span className="font-medium">Name:</span> {holder.holder_name}
+                            <span className="font-medium text-gray-700">Name:</span> 
+                            <span className="ml-1 text-gray-900">{holder.holder_name}</span>
                           </div>
                           <div>
-                            <span className="font-medium">Father's Name:</span> {holder.father_name || holder.father_husband_name}
+                            <span className="font-medium text-gray-700">Patta Number:</span> 
+                            <span className="ml-1 text-gray-900">{holder.patta_number}</span>
                           </div>
                           <div>
-                            <span className="font-medium">Contact:</span> {holder.contact_number || holder.mobile_number}
+                            <span className="font-medium text-gray-700">Occupation:</span> 
+                            <span className="ml-1 text-gray-900">{holder.occupation}</span>
                           </div>
                           <div>
-                            <span className="font-medium">Village:</span> {holder.village_name}
+                            <span className="font-medium text-gray-700">Land Type:</span> 
+                            <span className="ml-1 text-gray-900">{holder.land_classification}</span>
                           </div>
                           <div>
-                            <span className="font-medium">District:</span> {holder.district}
+                            <span className="font-medium text-gray-700">Village:</span> 
+                            <span className="ml-1 text-gray-900">{holder.village_name}</span>
                           </div>
                           <div>
-                            <span className="font-medium">State:</span> {holder.state}
+                            <span className="font-medium text-gray-700">District:</span> 
+                            <span className="ml-1 text-gray-900">{holder.district}</span>
                           </div>
                           <div>
-                            <span className="font-medium">Land Area:</span> {holder.land_area_hectares} hectares
+                            <span className="font-medium text-gray-700">State:</span> 
+                            <span className="ml-1 text-gray-900">{holder.state}</span>
                           </div>
                           <div>
-                            <span className="font-medium">Patta Number:</span> {holder.patta_number}
+                            <span className="font-medium text-gray-700">Claim Type:</span> 
+                            <span className="ml-1 text-gray-900">{holder.claim_type}</span>
                           </div>
                           <div>
-                            <span className="font-medium">Issue Date:</span> {holder.patta_issue_date ? new Date(holder.patta_issue_date).toLocaleDateString() : ''}
-                          </div>
-                          <div>
-                            <span className="font-medium">Status:</span>
-                            <span className={`ml-1 px-2 py-1 rounded text-xs ${holder.patta_status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
-                              {holder.patta_status}
-                            </span>
+                            <span className="font-medium text-gray-700">Area Claimed:</span> 
+                            <span className="ml-1 text-gray-900">{holder.area_claimed} hectares</span>
                           </div>
                         </div>
                       </div>

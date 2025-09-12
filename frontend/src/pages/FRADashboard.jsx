@@ -2,15 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import DistrictDetailsModal from '../components/ui/DistrictDetailsModal';
 
 const FRADashboard = () => {
   const { state } = useParams();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [districtModalOpen, setDistrictModalOpen] = useState(false);
+  const [districtDetails, setDistrictDetails] = useState(null);
+  const [districtLoading, setDistrictLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
   }, [state]);
+
+  const fetchDistrictDetails = async (district) => {
+    setDistrictLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/stats/${state}/${district.district}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setDistrictDetails(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching district details:', error);
+    }
+    setDistrictLoading(false);
+  };
+
+  const handleViewDetails = async (district) => {
+    setSelectedDistrict(district);
+    setDistrictModalOpen(true);
+    await fetchDistrictDetails(district);
+  };
+
+  const closeModal = () => {
+    setDistrictModalOpen(false);
+    setSelectedDistrict(null);
+    setDistrictDetails(null);
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -268,7 +300,10 @@ const FRADashboard = () => {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button className="text-blue-600 hover:text-blue-900 font-medium">
+                        <button 
+                          onClick={() => handleViewDetails(district)}
+                          className="text-blue-600 hover:text-blue-900 font-medium transition-colors"
+                        >
                           View Details
                         </button>
                       </td>
@@ -280,6 +315,15 @@ const FRADashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* District Details Modal */}
+      <DistrictDetailsModal
+        isOpen={districtModalOpen}
+        onClose={closeModal}
+        district={selectedDistrict}
+        districtData={districtDetails}
+        loading={districtLoading}
+      />
     </div>
   );
 };
