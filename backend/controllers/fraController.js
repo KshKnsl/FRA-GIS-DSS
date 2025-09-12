@@ -27,6 +27,8 @@ export const getFRAClaimsByState = async (req, res) => {
 export const getFRAStatsByDistrict = async (req, res) => {
   try {
     const { state, district } = req.params;
+    
+    // Get basic statistics
     const result = await pool.query(
       `SELECT 
         district,
@@ -36,16 +38,49 @@ export const getFRAStatsByDistrict = async (req, res) => {
         COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_claims,
         COUNT(CASE WHEN claim_type = 'IFR' THEN 1 END) as ifr_claims,
         COUNT(CASE WHEN claim_type = 'CR' THEN 1 END) as cr_claims,
-        COUNT(CASE WHEN claim_type = 'CFR' THEN 1 END) as cfr_claims
+        COUNT(CASE WHEN claim_type = 'CFR' THEN 1 END) as cfr_claims,
+        SUM(CASE WHEN status = 'granted' THEN area_claimed ELSE 0 END) as total_granted_area
        FROM fra_claims 
        WHERE state = $1 AND district = $2
        GROUP BY district`,
       [state, district]
     );
     
+    // Get patta holders for this district
+    const pattaHoldersResult = await pool.query(
+      `SELECT 
+        ph.patta_number,
+        ph.holder_name,
+        ph.father_husband_name,
+        ph.age,
+        ph.gender,
+        ph.occupation,
+        ph.annual_income,
+        ph.family_size,
+        ph.land_classification,
+        ph.mobile_number,
+        ph.issue_date,
+        ph.verification_status,
+        fc.village_name,
+        fc.claim_type,
+        fc.area_claimed,
+        fc.status as claim_status
+       FROM patta_holders ph 
+       JOIN fra_claims fc ON ph.claim_id = fc.claim_id 
+       WHERE fc.state = $1 AND fc.district = $2 AND fc.status = 'granted'
+       ORDER BY ph.created_at DESC
+       LIMIT 50`,
+      [state, district]
+    );
+    
+    const responseData = {
+      statistics: result.rows[0] || {},
+      pattaHolders: pattaHoldersResult.rows
+    };
+    
     res.status(200).json({
       success: true,
-      data: result.rows[0] || {},
+      data: responseData,
     });
   } catch (error) {
     console.error('Error fetching FRA statistics:', error);
