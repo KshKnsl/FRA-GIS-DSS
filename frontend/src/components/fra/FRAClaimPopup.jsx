@@ -70,7 +70,7 @@ const FRAClaimPopup = ({ claim }) => {
         {pattaHolders && (
           <div className="mt-2">
             <div className="font-medium text-xs text-gray-700 mb-1">Patta Holders:</div>
-            <ul className="text-xs text-gray-800 space-y-1 max-h-32 overflow-y-auto">
+            <ul className="text-xs text-foreground space-y-1 max-h-32 overflow-y-auto">
               {pattaHolders.length === 0 && <li>No patta holders found for this claim.</li>}
               {pattaHolders.map((holder) => (
                 <li key={holder.id} className="border-b pb-1 mb-1">
@@ -89,7 +89,7 @@ const FRAClaimPopup = ({ claim }) => {
         {landParcels && (
           <div className="mt-2">
             <div className="font-medium text-xs text-gray-700 mb-1">Land Parcels:</div>
-            <ul className="text-xs text-gray-800 space-y-1 max-h-32 overflow-y-auto">
+            <ul className="text-xs text-foreground space-y-1 max-h-32 overflow-y-auto">
               {landParcels.length === 0 && <li>No land parcels found for this claim.</li>}
               {landParcels.map((parcel) => (
                 <li key={parcel.id} className="border-b pb-1 mb-1">

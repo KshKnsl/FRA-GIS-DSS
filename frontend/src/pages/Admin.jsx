@@ -28,33 +28,6 @@ const Admin = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const exportData = async () => {
-    try {
-      const result = await (await fetch('http://localhost:4000/api/admin/stats')).json();
-      if (!result.success) throw new Error('Failed to fetch data');
-
-      const data = result.data;
-      let csv = 'Category,Value\n';
-      Object.entries(data.overall).forEach(([k, v]) => csv += `${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())},${v}\n`);
-
-      csv += '\nStatus Distribution\nStatus,Count\n';
-      data.statusDistribution.forEach(item => csv += `${item.status},${item.count}\n`);
-
-      csv += '\nState-wise Statistics\nState,Total Claims,Approved Claims,Pending Claims,Area Granted\n';
-      data.stateWise.forEach(item => csv += `${item.state},${item.total_claims},${item.approved_claims},${item.pending_claims},${item.area_granted}\n`);
-
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'fra_admin_data.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      alert('Error exporting data');
-    }
-  };
-
   if (loading) return <div className="p-8 max-w-4xl mx-auto bg-background text-foreground flex justify-center items-center h-64"><div className="text-lg">Loading dashboard...</div></div>;
 
   return (
@@ -83,11 +56,11 @@ const Admin = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-card rounded-lg p-4 shadow">
           <h2 className="font-semibold text-primary mb-2">Claims Status Distribution</h2>
-          <div className="border border-gray-200 rounded p-2"><ClaimsStatusChart /></div>
+          <div className="border border-border rounded p-2"><ClaimsStatusChart /></div>
         </div>
         <div className="bg-card rounded-lg p-4 shadow">
           <h2 className="font-semibold text-primary mb-2">Monthly Claims Processed</h2>
-          <div className="border border-gray-200 rounded p-2"><MonthlyClaimsChart /></div>
+          <div className="border border-border rounded p-2"><MonthlyClaimsChart /></div>
         </div>
         <div className="bg-card rounded-lg p-4 shadow">
           <h2 className="font-semibold text-primary mb-2">Data Quality</h2>
@@ -111,7 +84,6 @@ const Admin = () => {
             { label: "Open FRA Atlas", action: () => navigate('/') },
             { label: "Run Decision Support", action: () => navigate('/decision-support') },
             { label: "Upload Legacy Docs", action: () => navigate('/documents') },
-            { label: "Export Data (CSV)", action: exportData }
           ].map((btn, i) => (
             <button
               key={i}

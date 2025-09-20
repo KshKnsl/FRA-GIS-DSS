@@ -106,7 +106,7 @@ const FRAMap = ({
                   >
                     <Popup>
                       <div className="p-2">
-                        <h3 className="font-bold text-gray-800">
+                        <h3 className="font-bold text-foreground">
                           {village.village_name}
                         </h3>
                         <p className="text-sm text-gray-600">

@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 140 40% 95%; /* soft forest green background */
+    --background: white;
     --foreground: 140 20% 20%; /* deep forest text */
     --card: 140 30% 98%;
     --card-foreground: 140 20% 20%;

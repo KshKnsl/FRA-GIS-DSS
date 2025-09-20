@@ -69,30 +69,6 @@ const SupportHelp = () => {
     { value: "high", label: "High - System issue", color: "bg-orange-100 text-orange-800" },
     { value: "urgent", label: "Urgent - Critical problem", color: "bg-red-100 text-red-800" }
   ];
-
-  const quickStartGuides = [
-    {
-      title: "Getting Started",
-      icon: <Book className="w-5 h-5" />,
-      steps: [
-        "Navigate to the FRA Atlas dashboard",
-        "Select your state and district",
-        "Upload FRA claim documents",
-        "Explore the interactive map features"
-      ]
-    },
-    {
-      title: "Document Processing",
-      icon: <FileText className="w-5 h-5" />,
-      steps: [
-        "Go to Documents section",
-        "Upload your FRA documents",
-        "Wait for AI processing to complete",
-        "Review and verify extracted information"
-      ]
-    }
-  ];
-
   useEffect(() => {
     fetchFAQ();
     fetchTickets();
@@ -101,7 +77,7 @@ const SupportHelp = () => {
 
   const fetchFAQ = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/support/faq');
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/support/faq`);
       const data = await response.json();
 
       if (data.success && data.data.faqs) {
@@ -139,7 +115,7 @@ const SupportHelp = () => {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/support/tickets');
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/support/tickets`);
       const data = await response.json();
 
       if (data.success) {
@@ -155,7 +131,7 @@ const SupportHelp = () => {
 
   const fetchHelpContent = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/support/help');
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/support/help`);
       const data = await response.json();
 
       if (data.success) {
@@ -178,7 +154,7 @@ const SupportHelp = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/support/tickets', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/support/tickets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -235,9 +211,9 @@ const SupportHelp = () => {
       case "resolved":
         return <Badge className="bg-green-100 text-green-800">Resolved</Badge>;
       case "closed":
-        return <Badge className="bg-gray-100 text-gray-800">Closed</Badge>;
+        return <Badge className="bg-gray-100 text-foreground">Closed</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+        return <Badge className="bg-gray-100 text-foreground">Unknown</Badge>;
     }
   };
 
@@ -264,7 +240,6 @@ const SupportHelp = () => {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="support">Support</TabsTrigger>
           <TabsTrigger value="tickets">My Tickets</TabsTrigger>
-          <TabsTrigger value="guides">Quick Guides</TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
         </TabsList>
 
@@ -546,93 +521,6 @@ const SupportHelp = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="guides" className="space-y-6">
-          {/* Quick Start Guides */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {quickStartGuides.map((guide, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {guide.icon}
-                    {guide.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ol className="space-y-2">
-                    {guide.steps.map((step, stepIndex) => (
-                      <li key={stepIndex} className="flex items-start">
-                        <div className="flex-shrink-0 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium mr-3 mt-0.5">
-                          {stepIndex + 1}
-                        </div>
-                        <span className="text-sm">{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Tutorials from Backend */}
-          {helpContent.tutorials && helpContent.tutorials.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Video Tutorials</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {helpContent.tutorials.map((tutorial, index) => (
-                    <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-3">
-                        <Play className="w-8 h-8 text-primary mt-1" />
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-2">{tutorial.title}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">{tutorial.content}</p>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{tutorial.category}</Badge>
-                            <Button variant="outline" size="sm">
-                              <Play className="w-4 h-4 mr-1" />
-                              Watch Tutorial
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Guides from Backend */}
-          {helpContent.guides && helpContent.guides.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Resource Guides</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {helpContent.guides.map((guide, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <h4 className="font-medium">{guide.title}</h4>
-                          <p className="text-sm text-muted-foreground">{guide.category}</p>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-1" />
-                        Download
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="faq" className="space-y-6">

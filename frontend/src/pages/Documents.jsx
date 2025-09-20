@@ -61,7 +61,7 @@ const Documents = () => {
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:4000/api/documents');
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/documents`);
       const data = await response.json();
 
       if (data.success) {
@@ -124,7 +124,7 @@ const Documents = () => {
       formData.append('category', selectedCategory !== 'all' ? selectedCategory : 'patta');
       formData.append('state', selectedState !== 'all' ? selectedState : 'Madhya Pradesh');
 
-      const response = await fetch('http://localhost:4000/api/documents/upload', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/documents/upload`, {
         method: 'POST',
         body: formData,
         // Note: For actual file upload progress, you'd need to use XMLHttpRequest
@@ -178,7 +178,7 @@ const Documents = () => {
 
   const fetchOCRResults = async (documentId) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/documents/${documentId}/ocr`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/documents/${documentId}/ocr`);
       const data = await response.json();
 
       if (data.success) {
@@ -196,26 +196,26 @@ const Documents = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case "digitized":
-        return <Badge className="bg-green-100 text-green-800">Digitized</Badge>;
+        return <Badge className="bg-primary/10 text-primary">Digitized</Badge>;
       case "processing":
         return <Badge className="bg-yellow-100 text-yellow-800">Processing</Badge>;
       case "failed":
-        return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive">Failed</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+        return <Badge className="bg-muted text-muted-foreground">Unknown</Badge>;
     }
   };
 
   const getFileIcon = (fileType) => {
     switch (fileType) {
       case "pdf":
-        return <FileText className="w-5 h-5 text-red-600" />;
+        return <FileText className="w-5 h-5 text-destructive" />;
       case "tiff":
       case "jpg":
       case "png":
-        return <FileImage className="w-5 h-5 text-blue-600" />;
+        return <FileImage className="w-5 h-5 text-primary" />;
       default:
-        return <File className="w-5 h-5 text-gray-600" />;
+        return <File className="w-5 h-5 text-muted-foreground" />;
     }
   };
 
@@ -242,7 +242,6 @@ const Documents = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="browse">Browse Documents</TabsTrigger>
           <TabsTrigger value="upload">Upload & Process</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="browse" className="space-y-6">
@@ -380,15 +379,15 @@ const Documents = () => {
                             </div>
 
                             {doc.extracted_text && (
-                              <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                              <div className="bg-secondary p-3 rounded-lg mb-3">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Zap className="w-4 h-4 text-blue-600" />
-                                  <span className="text-sm font-medium text-blue-800">AI Extracted Text</span>
-                                  <Badge className="bg-blue-100 text-blue-800">
+                                  <Zap className="w-4 h-4 text-primary" />
+                                  <span className="text-sm font-medium text-secondary-foreground">AI Extracted Text</span>
+                                  <Badge className="bg-primary/10 text-primary">
                                     {(doc.ocr_confidence * 100).toFixed(0)}% confidence
                                   </Badge>
                                 </div>
-                                <p className="text-sm text-blue-700 line-clamp-2">
+                                <p className="text-sm text-secondary-foreground line-clamp-2">
                                   {doc.extracted_text}
                                 </p>
                               </div>
@@ -531,16 +530,16 @@ const Documents = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-green-600" />
+                        <Zap className="w-5 h-5 text-primary" />
                         AI Processing Results
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <CheckCircle className="w-5 h-5 text-primary" />
                           <span className="font-medium">OCR Processing Complete</span>
-                          <Badge className="bg-green-100 text-green-800">
+                          <Badge className="bg-primary/10 text-primary">
                             {(ocrResults.confidence * 100).toFixed(0)}% confidence
                           </Badge>
                         </div>
@@ -583,7 +582,7 @@ const Documents = () => {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
                         <div>
                           <h4 className="font-medium">OCR & Text Extraction</h4>
                           <p className="text-sm text-muted-foreground">
@@ -593,7 +592,7 @@ const Documents = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
                         <div>
                           <h4 className="font-medium">Entity Recognition</h4>
                           <p className="text-sm text-muted-foreground">
@@ -603,7 +602,7 @@ const Documents = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
                         <div>
                           <h4 className="font-medium">Document Classification</h4>
                           <p className="text-sm text-muted-foreground">
@@ -613,7 +612,7 @@ const Documents = () => {
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
                         <div>
                           <h4 className="font-medium">Search & Indexing</h4>
                           <p className="text-sm text-muted-foreground">
@@ -624,79 +623,6 @@ const Documents = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <FileText className="w-8 h-8 text-blue-600 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{documents.length}</div>
-                    <div className="text-sm text-muted-foreground">Total Documents</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <CheckCircle className="w-8 h-8 text-green-600 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {documents.filter(d => d.status === "digitized").length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Digitized</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <Clock className="w-8 h-8 text-yellow-600 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-yellow-600">
-                      {documents.filter(d => d.status === "processing").length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Processing</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center">
-                  <Zap className="w-8 h-8 text-purple-600 mr-3" />
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {documents.filter(d => d.ocr_confidence > 0.8).length}
-                    </div>
-                    <div className="text-sm text-muted-foreground">High OCR Confidence</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Processing Analytics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Archive className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Analytics Coming Soon</h3>
-                <p className="text-muted-foreground">
-                  Detailed analytics and insights will be available here.
-                </p>
               </div>
             </CardContent>
           </Card>

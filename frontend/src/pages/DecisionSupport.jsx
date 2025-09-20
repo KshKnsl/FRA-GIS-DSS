@@ -56,7 +56,6 @@ const DecisionSupport = () => {
       const response = await fetch(`http://localhost:4000/api/decision-support/schemes`);
       const data = await response.json();
       if (data.success) {
-        // Transform backend schemes to frontend format with icons
         const transformedSchemes = data.data.map(scheme => ({
           ...scheme,
           icon: getSchemeIcon(scheme.category),
@@ -77,11 +76,9 @@ const DecisionSupport = () => {
   const fetchDistricts = async () => {
     setDistrictsLoading(true);
     try {
-      // Get districts from villages endpoint since it returns village data with districts
       const response = await fetch(`http://localhost:4000/api/fra/villages?state=${selectedState}`);
       const data = await response.json();
       if (data.success) {
-        // Extract unique districts from the village data
         const uniqueDistricts = [...new Set(data.data?.map(v => v.district) || [])];
         setDistricts(uniqueDistricts);
         console.log('Districts loaded:', uniqueDistricts);
@@ -105,7 +102,6 @@ const DecisionSupport = () => {
       const response = await fetch(`http://localhost:4000/api/fra/villages?state=${selectedState}`);
       const data = await response.json();
       if (data.success) {
-        // Filter villages by selected district
         const districtVillages = data.data?.filter(v => v.district === selectedDistrict) || [];
         setVillages(districtVillages);
         console.log('Villages loaded for district', selectedDistrict, ':', districtVillages);
@@ -124,7 +120,7 @@ const DecisionSupport = () => {
   const fetchVillageData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/villages/${selectedVillage}/enhanced`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages/${selectedVillage}/enhanced`);
       const data = await response.json();
       if (data.success) {
         setVillageData(data.village);
@@ -143,11 +139,10 @@ const DecisionSupport = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/decision-support/recommendations/${selectedVillage}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/decision-support/recommendations/${selectedVillage}`);
       const data = await response.json();
 
       if (data.success) {
-        // Transform backend recommendations to frontend format
         const transformedRecommendations = data.recommendations.map(rec => {
           const schemeData = schemes.find(s => s.name.toLowerCase().includes(rec.scheme.toLowerCase().replace(/\s+/g, '_')));
           return {
@@ -182,10 +177,10 @@ const DecisionSupport = () => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case "High": return "bg-red-100 text-red-800";
+      case "High": return "bg-destructive/10 text-destructive";
       case "Medium": return "bg-yellow-100 text-yellow-800";
-      case "Low": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "Low": return "bg-primary/10 text-primary";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -381,11 +376,11 @@ const DecisionSupport = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{villageData.total_population}</div>
+                    <div className="text-2xl font-bold text-foreground">{villageData.total_population}</div>
                     <div className="text-sm text-muted-foreground">Total Population</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{villageData.tribal_population}</div>
+                    <div className="text-2xl font-bold text-primary">{villageData.tribal_population}</div>
                     <div className="text-sm text-muted-foreground">Tribal Population</div>
                   </div>
                   <div className="text-center">
@@ -408,9 +403,9 @@ const DecisionSupport = () => {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center">
-                  <CheckCircle className="w-8 h-8 text-green-600 mr-3" />
+                  <CheckCircle className="w-8 h-8 text-primary mr-3" />
                   <div>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-primary">
                       {recommendations.filter(r => r.priority === "High").length}
                     </div>
                     <div className="text-sm text-muted-foreground">High Priority</div>
@@ -478,7 +473,7 @@ const DecisionSupport = () => {
                               <ul className="text-sm text-muted-foreground space-y-1">
                                 {scheme.eligibility.map((criteria, idx) => (
                                   <li key={idx} className="flex items-center">
-                                    <CheckCircle className="w-3 h-3 text-green-600 mr-2" />
+                                    <CheckCircle className="w-3 h-3 text-primary mr-2" />
                                     {criteria}
                                   </li>
                                 ))}
@@ -489,7 +484,7 @@ const DecisionSupport = () => {
                               <ul className="text-sm text-muted-foreground space-y-1">
                                 {scheme.benefits.map((benefit, idx) => (
                                   <li key={idx} className="flex items-center">
-                                    <Target className="w-3 h-3 text-blue-600 mr-2" />
+                                    <Target className="w-3 h-3 text-primary mr-2" />
                                     {benefit}
                                   </li>
                                 ))}
@@ -498,9 +493,9 @@ const DecisionSupport = () => {
                           </div>
 
                           {scheme.reasons.length > 0 && (
-                            <div className="bg-blue-50 p-3 rounded-lg">
-                              <h4 className="font-medium text-sm text-blue-800 mb-2">AI Recommendation Reasons:</h4>
-                              <ul className="text-sm text-blue-700 space-y-1">
+                            <div className="bg-secondary p-3 rounded-lg">
+                              <h4 className="font-medium text-sm text-secondary-foreground mb-2">AI Recommendation Reasons:</h4>
+                              <ul className="text-sm text-secondary-foreground space-y-1">
                                 {scheme.reasons.map((reason, idx) => (
                                   <li key={idx} className="flex items-center">
                                     <Zap className="w-3 h-3 mr-2" />
@@ -551,7 +546,7 @@ const DecisionSupport = () => {
             <CardContent>
               {schemesLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   <span className="ml-2">Loading schemes...</span>
                 </div>
               ) : (
@@ -573,7 +568,7 @@ const DecisionSupport = () => {
                           <td className="border border-border p-3 font-medium">{scheme.name}</td>
                           <td className="border border-border p-3">{scheme.category}</td>
                           <td className="border border-border p-3">
-                            <Badge className="bg-green-100 text-green-800">Eligible</Badge>
+                            <Badge className="bg-primary/10 text-primary">Eligible</Badge>
                           </td>
                           <td className="border border-border p-3 text-sm">
                             {scheme.eligibility.find(e => e.includes("Land")) || "N/A"}
