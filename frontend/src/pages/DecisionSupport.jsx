@@ -53,7 +53,7 @@ const DecisionSupport = () => {
   const fetchSchemes = async () => {
     setSchemesLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/decision-support/schemes`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/decision-support/schemes`);
       const data = await response.json();
       if (data.success) {
         const transformedSchemes = data.data.map(scheme => ({
@@ -76,7 +76,7 @@ const DecisionSupport = () => {
   const fetchDistricts = async () => {
     setDistrictsLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/villages?state=${selectedState}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages?state=${selectedState}`);
       const data = await response.json();
       if (data.success) {
         const uniqueDistricts = [...new Set(data.data?.map(v => v.district) || [])];
@@ -99,7 +99,7 @@ const DecisionSupport = () => {
 
     setVillagesLoading(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/fra/villages?state=${selectedState}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages?state=${selectedState}`);
       const data = await response.json();
       if (data.success) {
         const districtVillages = data.data?.filter(v => v.district === selectedDistrict) || [];

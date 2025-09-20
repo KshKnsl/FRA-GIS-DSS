@@ -64,10 +64,10 @@ const SupportHelp = () => {
   ];
 
   const priorityLevels = [
-    { value: "low", label: "Low - General inquiry", color: "bg-green-100 text-green-800" },
+    { value: "low", label: "Low - General inquiry", color: "bg-primary/10 text-primary" },
     { value: "medium", label: "Medium - Feature request", color: "bg-yellow-100 text-yellow-800" },
     { value: "high", label: "High - System issue", color: "bg-orange-100 text-orange-800" },
-    { value: "urgent", label: "Urgent - Critical problem", color: "bg-red-100 text-red-800" }
+    { value: "urgent", label: "Urgent - Critical problem", color: "bg-destructive/10 text-destructive" }
   ];
   useEffect(() => {
     fetchFAQ();
@@ -205,15 +205,15 @@ const SupportHelp = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case "open":
-        return <Badge className="bg-blue-100 text-blue-800">Open</Badge>;
+        return <Badge className="bg-primary/10 text-primary">Open</Badge>;
       case "in-progress":
         return <Badge className="bg-yellow-100 text-yellow-800">In Progress</Badge>;
       case "resolved":
-        return <Badge className="bg-green-100 text-green-800">Resolved</Badge>;
+        return <Badge className="bg-primary/10 text-primary">Resolved</Badge>;
       case "closed":
-        return <Badge className="bg-gray-100 text-foreground">Closed</Badge>;
+        return <Badge className="bg-muted text-muted-foreground">Closed</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-foreground">Unknown</Badge>;
+        return <Badge className="bg-muted text-muted-foreground">Unknown</Badge>;
     }
   };
 
@@ -248,7 +248,7 @@ const SupportHelp = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center">
-                <Mail className="w-10 h-10 text-blue-600 mx-auto mb-3" />
+                <Mail className="w-10 h-10 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">Email Support</h3>
                 <p className="text-sm text-muted-foreground">support@fra-atlas.gov.in</p>
                 <p className="text-xs text-muted-foreground">24 hours response</p>
@@ -257,7 +257,7 @@ const SupportHelp = () => {
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center">
-                <Phone className="w-10 h-10 text-green-600 mx-auto mb-3" />
+                <Phone className="w-10 h-10 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">Helpline</h3>
                 <p className="text-sm text-muted-foreground">1800-XXX-FRA-1</p>
                 <p className="text-xs text-muted-foreground">24/7 toll-free</p>
@@ -266,7 +266,7 @@ const SupportHelp = () => {
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center">
-                <Clock className="w-10 h-10 text-purple-600 mx-auto mb-3" />
+                <Clock className="w-10 h-10 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">Live Chat</h3>
                 <p className="text-sm text-muted-foreground">9 AM - 6 PM IST</p>
                 <p className="text-xs text-muted-foreground">Mon-Fri only</p>
@@ -275,7 +275,7 @@ const SupportHelp = () => {
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center">
-                <Users className="w-10 h-10 text-orange-600 mx-auto mb-3" />
+                <Users className="w-10 h-10 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold mb-1">Community</h3>
                 <p className="text-sm text-muted-foreground">Join discussions</p>
                 <p className="text-xs text-muted-foreground">Peer support</p>
@@ -291,8 +291,8 @@ const SupportHelp = () => {
             <CardContent>
               {submitSuccess ? (
                 <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-green-800 mb-2">Ticket Submitted Successfully!</h3>
+                  <CheckCircle className="w-16 h-16 text-primary mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-primary mb-2">Ticket Submitted Successfully!</h3>
                   <p className="text-muted-foreground">
                     Your support ticket has been created. You'll receive an email confirmation with ticket ID and tracking information.
                   </p>
@@ -427,8 +427,8 @@ const SupportHelp = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6 text-center">
-                <AlertCircle className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-600 mb-1">
+                <AlertCircle className="w-8 h-8 text-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-primary mb-1">
                   {tickets.filter(t => t.status === "open" || t.status === "in_progress").length}
                 </div>
                 <div className="text-sm text-muted-foreground">Open Tickets</div>
@@ -447,8 +447,8 @@ const SupportHelp = () => {
 
             <Card>
               <CardContent className="pt-6 text-center">
-                <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-green-600 mb-1">
+                <CheckCircle className="w-8 h-8 text-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-primary mb-1">
                   {tickets.filter(t => t.status === "resolved").length}
                 </div>
                 <div className="text-sm text-muted-foreground">Resolved</div>
@@ -457,8 +457,8 @@ const SupportHelp = () => {
 
             <Card>
               <CardContent className="pt-6 text-center">
-                <Zap className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-purple-600 mb-1">24h</div>
+                <Zap className="w-8 h-8 text-primary mx-auto mb-2" />
+                <div className="text-2xl font-bold text-primary mb-1">24h</div>
                 <div className="text-sm text-muted-foreground">Avg Response</div>
               </CardContent>
             </Card>
@@ -568,7 +568,7 @@ const SupportHelp = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-blue-600" />
+                    <FileText className="w-5 h-5 text-primary" />
                     <div>
                       <h4 className="font-medium">FRA Act 2006</h4>
                       <p className="text-sm text-muted-foreground">Official legislation</p>
@@ -582,7 +582,7 @@ const SupportHelp = () => {
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <Download className="w-5 h-5 text-green-600" />
+                    <Download className="w-5 h-5 text-primary" />
                     <div>
                       <h4 className="font-medium">Implementation Guide</h4>
                       <p className="text-sm text-muted-foreground">Step-by-step guide</p>

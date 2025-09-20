@@ -90,7 +90,7 @@ const VillageProfile = () => {
   const fetchVillageAssets = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/assets/${villageId}`);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages/${villageId}/assets`);
       const data = await response.json();
       
       if (data.success) {

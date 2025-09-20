@@ -23,7 +23,7 @@ export function ClaimsStatusChart() {
 
   useEffect(() => {
     const fetchStatusData = async () => {
-      const response = await fetch("http://localhost:4000/api/admin/stats");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/stats`);
       const result = await response.json();
 
       if (result.success) {
@@ -113,7 +113,7 @@ export function MonthlyClaimsChart() {
     const fetchMonthlyData = async () => {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/admin/monthly-trends"
+          `${import.meta.env.VITE_BACKEND_URL}/api/admin/monthly-trends`
         );
         const result = await response.json();
 

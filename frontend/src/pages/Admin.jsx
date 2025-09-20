@@ -9,7 +9,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/admin/stats')
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/stats`)
       .then(res => res.json())
       .then(result => {
         if (result.success) {
