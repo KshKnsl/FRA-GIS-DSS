@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import NavigationSidebar from './components/NavigationSidebar';
@@ -9,31 +8,19 @@ import Admin from './pages/Admin';
 import DecisionSupport from './pages/DecisionSupport';
 import Documents from './pages/Documents';
 import SupportHelp from './pages/SupportHelp';
-import React, { useContext } from 'react';
+import React from 'react';
 import { SidebarProvider, useSidebar } from './components/SidebarContext';
 import { cn } from './lib/utils';
 
 function AppContent() {
-  const { sidebarOpen } = useSidebar();
-  const [collapsed, setCollapsed] = React.useState(false);
-  React.useEffect(() => {
-    const handler = (e) => {
-      if (e.detail && typeof e.detail.collapsed === 'boolean') {
-        setCollapsed(e.detail.collapsed);
-      }
-    };
-    window.addEventListener('sidebar-collapse', handler);
-    return () => window.removeEventListener('sidebar-collapse', handler);
-  }, []); 
+  const { collapsed } = useSidebar();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <div className="flex flex-1">
-        <NavigationSidebar onCollapse={val => setCollapsed(val)} />
-        <main
-          className={cn("flex-1 min-h-screen transition-all", sidebarOpen && !collapsed ? "lg:ml-72" : "")}
-        >
+    <div className="min-h-screen w-full bg-background">
+      <NavigationSidebar />
+      <div className={cn("flex flex-col h-screen transition-all duration-300 ease-in-out", collapsed ? "lg:pl-20" : "lg:pl-72")}>
+        <Header />
+        <main className="flex-1 overflow-auto">
           <Routes>
             <Route path="/" element={<FRAAtlas />} />
             <Route path="/fra-dashboard/:state" element={<FRADashboard />} />

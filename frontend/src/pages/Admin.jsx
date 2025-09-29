@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { BarChart3, Users } from "lucide-react";
+import { BarChart3, Users, CheckCircle, Clock, PieChart, ThumbsUp, Database, FileUp, Map as MapIcon } from "lucide-react"; // Renamed Map to MapIcon
 import { ClaimsStatusChart, MonthlyClaimsChart } from "./AdminCharts";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Separator } from "../components/ui/separator";
 
 const Admin = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ total_claims: 0, granted_claims: 0, pending_claims: 0, total_granted_area: 0, approval_rate: 0 });
+  const [stats, setStats] = useState({
+    total_claims: 0,
+    approved_claims: 0,
+    pending_claims: 0,
+    total_area_granted: 0,
+    approval_rate: 0,
+    digitized_claims_percent: 0,
+    geo_referenced_claims_percent: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,14 +24,20 @@ const Admin = () => {
       .then(res => res.json())
       .then(result => {
         if (result.success) {
-          const data = result.data.overall;
-          const approvalRate = data.total_claims > 0 ? ((data.approved_claims / data.total_claims) * 100).toFixed(1) : 0;
+          const overall = result.data.overall;
+          const quality = result.data.dataQuality;
+          const approvalRate = overall.total_claims > 0 ? ((overall.approved_claims / overall.total_claims) * 100).toFixed(1) : 0;
+          const digitizedPercent = quality.total_claims > 0 ? ((quality.digitized_claims / quality.total_claims) * 100).toFixed(1) : 0;
+          const geoReferencedPercent = quality.total_claims > 0 ? ((quality.geo_referenced_claims / quality.total_claims) * 100).toFixed(1) : 0;
+
           setStats({
-            total_claims: data.total_claims || 0,
-            granted_claims: data.approved_claims || 0,
-            pending_claims: data.pending_claims || 0,
-            total_granted_area: data.total_area_granted || 0,
-            approval_rate: approvalRate
+            total_claims: overall.total_claims || 0,
+            approved_claims: overall.approved_claims || 0,
+            pending_claims: overall.pending_claims || 0,
+            total_area_granted: parseFloat(overall.total_area_granted || 0).toLocaleString(),
+            approval_rate: approvalRate,
+            digitized_claims_percent: digitizedPercent,
+            geo_referenced_claims_percent: geoReferencedPercent,
           });
         }
       })
@@ -28,72 +45,106 @@ const Admin = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-8 max-w-4xl mx-auto bg-background text-foreground flex justify-center items-center h-64"><div className="text-lg">Loading dashboard...</div></div>;
+  const StatCard = ({ title, value, icon, subtitle }) => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto bg-background text-foreground">
-      <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
-        <Users className="w-6 h-6 text-primary" /> Admin Dashboard
-      </h1>
-      <p className="text-muted-foreground mb-6">Forest Rights Act implementation overview</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {[
-          { title: "Total Claims", value: stats.total_claims.toLocaleString(), subtitle: "Across all states" },
-          { title: "Approval Rate", value: `${stats.approval_rate}%`, subtitle: `${stats.granted_claims} approved claims` },
-          { title: "Pending Claims", value: stats.pending_claims.toLocaleString(), subtitle: "Awaiting approval" },
-          { title: "Granted Area", value: `${stats.total_granted_area.toLocaleString()} ha`, subtitle: "Total area approved" }
-        ].map((card, i) => (
-          <div key={i} className="bg-secondary rounded-lg p-4 shadow">
-            <h2 className="font-semibold text-primary">{card.title}</h2>
-            <div className="text-3xl font-bold text-foreground">{card.value}</div>
-            <p className="text-xs text-muted-foreground">{card.subtitle}</p>
-            <span className="text-xs text-primary">Live data from database</span>
-          </div>
-        ))}
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 bg-background text-foreground">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Forest Rights Act implementation overview</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-card rounded-lg p-4 shadow">
-          <h2 className="font-semibold text-primary mb-2">Claims Status Distribution</h2>
-          <div className="border border-border rounded p-2"><ClaimsStatusChart /></div>
-        </div>
-        <div className="bg-card rounded-lg p-4 shadow">
-          <h2 className="font-semibold text-primary mb-2">Monthly Claims Processed</h2>
-          <div className="border border-border rounded p-2"><MonthlyClaimsChart /></div>
-        </div>
-        <div className="bg-card rounded-lg p-4 shadow">
-          <h2 className="font-semibold text-primary mb-2">Data Quality</h2>
-          <div className="flex gap-4">
-            <div className="flex flex-col items-center">
-              <span className="text-lg font-bold text-foreground">{stats.approval_rate}%</span>
-              <span className="text-xs text-muted-foreground">Approved</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-lg font-bold text-foreground">{(100 - parseFloat(stats.approval_rate)).toFixed(1)}%</span>
-              <span className="text-xs text-muted-foreground">Pending/Rejected</span>
-            </div>
-          </div>
-        </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard title="Total Claims" value={stats.total_claims.toLocaleString()} subtitle="Across all states" icon={<BarChart3 className="h-5 w-5 text-muted-foreground" />} />
+        <StatCard title="Approval Rate" value={`${stats.approval_rate}%`} subtitle={`${stats.approved_claims.toLocaleString()} approved claims`} icon={<ThumbsUp className="h-5 w-5 text-muted-foreground" />} />
+        <StatCard title="Pending Claims" value={stats.pending_claims.toLocaleString()} subtitle="Awaiting approval" icon={<Clock className="h-5 w-5 text-muted-foreground" />} />
+        <StatCard title="Granted Area (ha)" value={stats.total_granted_area} subtitle="Total area approved" icon={<MapIcon className="h-5 w-5 text-muted-foreground" />} />
       </div>
 
-      <div className="bg-secondary rounded-lg p-4 shadow mb-8">
-        <h2 className="font-semibold text-primary mb-2">Quick Actions</h2>
-        <div className="flex gap-2 flex-wrap">
-          {[
-            { label: "Open FRA Atlas", action: () => navigate('/') },
-            { label: "Run Decision Support", action: () => navigate('/decision-support') },
-            { label: "Upload Legacy Docs", action: () => navigate('/documents') },
-          ].map((btn, i) => (
-            <button
-              key={i}
-              className="bg-primary text-primary-foreground px-3 py-1 rounded hover:bg-primary/90 transition-colors"
-              onClick={btn.action}
-            >
-              {btn.label}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Monthly Claims Processed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MonthlyClaimsChart />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Claims Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ClaimsStatusChart />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Quality</CardTitle>
+            <p className="text-xs text-muted-foreground pt-1">Metrics for data integrity</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm font-medium">Digitized Claims</span>
+                <span className="text-sm font-bold">{stats.digitized_claims_percent}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2.5">
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${stats.digitized_claims_percent}%` }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-sm font-medium">Geo-Referenced Claims</span>
+                <span className="text-sm font-bold">{stats.geo_referenced_claims_percent}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2.5">
+                <div className="bg-secondary-foreground h-2.5 rounded-full" style={{ width: `${stats.geo_referenced_claims_percent}%` }}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <p className="text-xs text-muted-foreground pt-1">Navigate to key sections of the application</p>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row gap-4">
+            <Button className="flex-1" onClick={() => navigate('/')}>
+              <MapIcon className="mr-2 h-4 w-4" /> Open FRA Atlas
+            </Button>
+            <Button className="flex-1" variant="secondary" onClick={() => navigate('/decision-support')}>
+              <Database className="mr-2 h-4 w-4" /> Run Decision Support
+            </Button>
+            <Button className="flex-1" variant="outline" onClick={() => navigate('/documents')}>
+              <FileUp className="mr-2 h-4 w-4" /> Upload Legacy Docs
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

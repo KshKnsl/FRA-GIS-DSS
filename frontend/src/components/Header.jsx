@@ -1,50 +1,56 @@
-
-import React from 'react';
-import { TreePine } from 'lucide-react';
-import NavigationSidebar from './NavigationSidebar';
+import React, { useState, useEffect } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Search, Sun, Moon } from 'lucide-react';
 
 const Header = () => {
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const handleThemeToggle = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
   return (
-  <header className="bg-background border-b border-border shadow-sm sticky top-0 z-30">
-      <div className="lg:pl-72">
-        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-          {/* Mobile menu and branding */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile Logo */}
-            <div className="flex items-center space-x-3 lg:hidden">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <TreePine className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-foreground">FRA Atlas</h1>
-                <span className="text-xs font-semibold text-primary bg-secondary rounded px-2 py-1 ml-2">Prototype v1.0</span>
-              </div>
-            </div>
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 shrink-0">
+       <div className="flex-1">
+          <h1 className="text-xl font-semibold text-foreground">
+            Forest Rights Act Monitoring System
+            <span className="text-xs font-semibold text-primary bg-secondary rounded px-2 py-1 ml-2 align-middle">
+              Prototype v1.0
+            </span>
+          </h1>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-background"
+            />
+        </div>
 
-            {/* Desktop Title */}
-            <div className="hidden lg:block">
-              <h1 className="text-xl font-semibold text-foreground">
-                Forest Rights Act Monitoring System
-                <span className="text-xs font-semibold text-primary bg-secondary rounded px-2 py-1 ml-2 align-middle">Prototype v1.0</span>
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                AI-powered monitoring for Madhya Pradesh • Tripura • Odisha • Telangana
-              </p>
-            </div>
-          </div>
+        <Button variant="ghost" size="icon" onClick={handleThemeToggle}>
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
 
-          {/* Right side actions */}
-          <div className="flex items-center">
-            {/* User Info */}
-            <div className="hidden sm:flex items-center space-x-3 ml-4 pl-4 border-l border-border">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary to-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-medium">G</span>
-              </div>
-              <div className="hidden md:block">
-                <p className="text-sm font-medium text-primary">Government User</p>
-                <p className="text-xs text-muted-foreground">Ministry of Tribal Affairs</p>
-              </div>
+        <div className="flex items-center gap-2">
+           <div className="w-8 h-8 bg-gradient-to-r from-primary to-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-primary-foreground text-sm font-medium">G</span>
             </div>
+          <div className="hidden md:flex flex-col items-start">
+              <span className="text-sm font-medium">Government User</span>
+              <span className="text-xs text-muted-foreground">Ministry of Tribal Affairs</span>
           </div>
         </div>
       </div>

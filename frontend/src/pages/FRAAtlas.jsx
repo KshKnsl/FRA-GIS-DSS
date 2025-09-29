@@ -1,12 +1,8 @@
-
 import React, { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
-import FRASidebar from "../components/fra/FRASidebar";
 import FRAMap from "../components/fra/FRAMap";
 import ControlPanel from "../components/fra/ControlPanel";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-// FRAClaimPopup is used inside FRAMap popups
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -18,7 +14,6 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Custom icons for different claim types
 const createCustomIcon = (color) => {
   return L.divIcon({
     className: "custom-div-icon",
@@ -42,20 +37,7 @@ const FRAAtlas = () => {
   const [showPattaHolders, setShowPattaHolders] = useState(true);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [districtStats, setDistrictStats] = useState(null);
-  const [showClaimModal, setShowClaimModal] = useState(false);
   const [showMapControls, setShowMapControls] = useState(true);
-  const [claimForm, setClaimForm] = useState({
-    applicant_name: "",
-    community_name: "",
-    claim_type: "IFR",
-    area_hectares: "",
-    village_name: "",
-    district: "",
-    state: selectedState,
-    remarks: "",
-  });
-  const [claimSubmitting, setClaimSubmitting] = useState(false);
-  const [claimSuccess, setClaimSuccess] = useState(null);
   const [baseMapLayer, setBaseMapLayer] = useState("OpenStreetMap");
 
   const targetStates = ["Madhya Pradesh", "Tripura", "Odisha", "Telangana"];
@@ -75,9 +57,10 @@ const FRAAtlas = () => {
   }, [fraVillages, selectedState]);
 
   const uniqueDistricts = useMemo(() => {
+    if (!fraVillages) return [];
     return Array.from(
       new Set(
-        (fraVillages || []).map((v) => v.district)
+        fraVillages.map((v) => v.district).filter(Boolean)
       )
     ).sort();
   }, [fraVillages]);
@@ -91,86 +74,37 @@ const FRAAtlas = () => {
   }, [fraClaims, selectedState, selectedClaimType]);
 
   useEffect(() => {
-    if (selectedState === "All States") {
-      fetchAllFRAVillages();
-      fetchAllFRAClaims();
-      fetchAllPattaHolders();
-    } else {
-      fetchFRAVillages();
-      fetchFRAClaims();
-      fetchPattaHolders();
+    if (selectedState !== "All States") {
+      fetchFRAData(selectedState);
     }
     setSelectedDistrict("");
     setDistrictStats(null);
   }, [selectedState]);
 
-  // Fetch FRA villages from backend
-  const fetchFRAVillages = async () => {
+  const fetchFRAData = async (state) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/fra/villages${selectedState !== "All States" ? `?state=${selectedState}` : ''}`
-      );
-      const data = await response.json();
+      const [villagesRes, claimsRes, pattaHoldersRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/villages?state=${state}`),
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/claims/${state}`),
+        fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/patta-holders/state/${state}`)
+      ]);
 
-      if (data.success) {
-        console.log("FRA Villages data:", data.data);
-        setFraVillages(data.data);
-      } else {
-        console.error("Failed to fetch FRA villages:", data.message);
-        setFraVillages([]);
-      }
+      const villagesData = await villagesRes.json();
+      if (villagesData.success) setFraVillages(villagesData.data);
+
+      const claimsData = await claimsRes.json();
+      if (claimsData.success) setFraClaims(claimsData.data);
+
+      const pattaHoldersData = await pattaHoldersRes.json();
+      if (pattaHoldersData.success) setPattaHolders(pattaHoldersData.data);
+
     } catch (error) {
-      console.error("Error fetching FRA villages:", error);
-      setFraVillages([]);
-    }
-    setLoading(false);
-  };
-
-  // Fetch FRA claims from backend
-  const fetchFRAClaims = async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/fra/claims/${selectedState}`
-      );
-      const data = await response.json();
-
-      if (data.success) {
-        console.log("FRA Claims data:", data.data);
-        setFraClaims(data.data);
-      } else {
-        console.error("Failed to fetch FRA claims:", data.message);
-        setFraClaims([]);
-      }
-    } catch (error) {
-      console.error("Error fetching FRA claims:", error);
-      setFraClaims([]);
+      console.error("Error fetching FRA data:", error);
+    } finally {
+      setLoading(false);
     }
   };
-
-  // Fetch patta holders from backend
-  const fetchPattaHolders = async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/fra/patta-holders/state/${selectedState}`
-      );
-      const data = await response.json();
-
-      if (data.success) {
-        console.log("Patta Holders data:", data.data);
-        setPattaHolders(data.data);
-      } else {
-        console.error("Failed to fetch patta holders:", data.message);
-        setPattaHolders([]);
-      }
-    } catch (error) {
-      console.error("Error fetching patta holders:", error);
-      setPattaHolders([]);
-    }
-  };  // Update state in claim form if state changes
-  useEffect(() => {
-    setClaimForm((f) => ({ ...f, state: selectedState }));
-  }, [selectedState]);
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -178,10 +112,9 @@ const FRAAtlas = () => {
     } else {
       setDistrictStats(null);
     }
-    // eslint-disable-next-line
   }, [selectedDistrict, selectedState]);
 
-  const fetchDistrictStats = async (district) => {
+    const fetchDistrictStats = async (district) => {
     if (!district) return;
     try {
       const response = await fetch(
@@ -191,51 +124,14 @@ const FRAAtlas = () => {
       );
       const data = await response.json();
       if (data.success) {
-        setDistrictStats(data.data);
+        setDistrictStats(data.data.statistics);
       } else {
         setDistrictStats(null);
       }
     } catch (error) {
+      console.error("Error fetching district stats:", error);
       setDistrictStats(null);
     }
-  };
-
-  const handleClaimFormChange = (e) => {
-    const { name, value } = e.target;
-    setClaimForm((f) => ({ ...f, [name]: value }));
-  };
-
-  const handleClaimSubmit = async (e) => {
-    e.preventDefault();
-    setClaimSubmitting(true);
-    setClaimSuccess(null);
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fra/claims`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(claimForm),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setClaimSuccess("Claim submitted successfully!");
-        setClaimForm({
-          applicant_name: "",
-          community_name: "",
-          claim_type: "IFR",
-          area_hectares: "",
-          village_name: "",
-          district: "",
-          state: selectedState,
-          remarks: "",
-        });
-        fetchFRAClaims(); // Refresh claims
-      } else {
-        setClaimSuccess("Failed to submit claim.");
-      }
-    } catch (error) {
-      setClaimSuccess("Error submitting claim.");
-    }
-    setClaimSubmitting(false);
   };
 
   useEffect(() => {
@@ -246,14 +142,10 @@ const FRAAtlas = () => {
 
   const getClaimTypeColor = (claimType) => {
     switch (claimType) {
-      case "IFR":
-        return "#3B82F6"; // Blue
-      case "CR":
-        return "#10B981"; // Green
-      case "CFR":
-        return "#F59E0B"; // Orange
-      default:
-        return "#6B7280"; // Gray
+      case "IFR": return "#3B82F6";
+      case "CR": return "#10B981";
+      case "CFR": return "#F59E0B";
+      default: return "#6B7280";
     }
   };
 
@@ -263,60 +155,55 @@ const FRAAtlas = () => {
   };
 
   const isValidCoordinate = (lat, lng) => {
-    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    return lat != null && lng != null && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   };
 
   return (
-    <div className="relative h-full min-h-screen bg-background text-foreground">
-      <div className="flex flex-col h-full">
-        <div className="flex-1 relative">
-          {/* Map Controls Panel - All screen sizes */}
-          <div className="fixed top-4 right-4 z-[1000] w-[340px] sm:w-[400px]">
-            <ControlPanel
-              showFraVillages={showFraVillages}
-              setShowFraVillages={setShowFraVillages}
-              showCoverageAreas={showCoverageAreas}
-              setShowCoverageAreas={setShowCoverageAreas}
-              showPattaHolders={showPattaHolders}
-              setShowPattaHolders={setShowPattaHolders}
-              baseMapLayer={baseMapLayer}
-              setBaseMapLayer={setBaseMapLayer}
-              targetStates={targetStates}
-              selectedState={selectedState}
-              setSelectedState={setSelectedState}
-              selectedClaimType={selectedClaimType}
-              setSelectedClaimType={setSelectedClaimType}
-              selectedDistrict={selectedDistrict}
-              setSelectedDistrict={setSelectedDistrict}
-              uniqueDistricts={uniqueDistricts}
-              fraVillages={fraVillages}
-              filteredClaims={filteredClaims}
-              pattaHolders={pattaHolders}
-              showMapControls={showMapControls}
-              setShowMapControls={setShowMapControls}
-              districtStats={districtStats}
-              overlayOpacity={overlayOpacity}
-              setOverlayOpacity={setOverlayOpacity}
-            />
-          </div>
-          <FRAMap
-            mapCenter={mapCenter}
-            filteredVillages={filteredVillages}
-            getClaimTypeIcon={getClaimTypeIcon}
-            getClaimTypeColor={getClaimTypeColor}
-            isValidCoordinate={isValidCoordinate}
-            showFraVillages={showFraVillages}
-            showCoverageAreas={showCoverageAreas}
-            filteredClaims={filteredClaims}
-            showPattaHolders={showPattaHolders}
-            pattaHolders={pattaHolders}
-            selectedState={selectedState}
-            baseMapLayer={baseMapLayer}
-            overlayOpacity={overlayOpacity}
-            L={L}
-          />
-        </div>
+    <div className="w-full h-full relative">
+      <div className="absolute bottom-4 right-4 z-[401] w-[340px] sm:w-[400px]">
+        <ControlPanel
+          showFraVillages={showFraVillages}
+          setShowFraVillages={setShowFraVillages}
+          showCoverageAreas={showCoverageAreas}
+          setShowCoverageAreas={setShowCoverageAreas}
+          showPattaHolders={showPattaHolders}
+          setShowPattaHolders={setShowPattaHolders}
+          baseMapLayer={baseMapLayer}
+          setBaseMapLayer={setBaseMapLayer}
+          targetStates={targetStates}
+          selectedState={selectedState}
+          setSelectedState={setSelectedState}
+          selectedClaimType={selectedClaimType}
+          setSelectedClaimType={setSelectedClaimType}
+          selectedDistrict={selectedDistrict}
+          setSelectedDistrict={setSelectedDistrict}
+          uniqueDistricts={uniqueDistricts}
+          fraVillages={fraVillages}
+          filteredClaims={filteredClaims}
+          pattaHolders={pattaHolders}
+          showMapControls={showMapControls}
+          setShowMapControls={setShowMapControls}
+          districtStats={districtStats}
+          overlayOpacity={overlayOpacity}
+          setOverlayOpacity={setOverlayOpacity}
+        />
       </div>
+      <FRAMap
+        mapCenter={mapCenter}
+        filteredVillages={filteredVillages}
+        getClaimTypeIcon={getClaimTypeIcon}
+        getClaimTypeColor={getClaimTypeColor}
+        isValidCoordinate={isValidCoordinate}
+        showFraVillages={showFraVillages}
+        showCoverageAreas={showCoverageAreas}
+        filteredClaims={filteredClaims}
+        showPattaHolders={showPattaHolders}
+        pattaHolders={pattaHolders}
+        selectedState={selectedState}
+        baseMapLayer={baseMapLayer}
+        overlayOpacity={overlayOpacity}
+        L={L}
+      />
     </div>
   );
 };
