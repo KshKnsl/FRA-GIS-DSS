@@ -1,5 +1,55 @@
 import pool from '../db.js';
 
+export const searchGlobal = async (req, res, next) => {
+  const { q } = req.query;
+  if (!q) {
+    return res.status(400).json({ success: false, message: 'Search query is required' });
+  }
+
+  try {
+    const searchTerm = `%${q}%`;
+
+    const claimsQuery = pool.query(
+      `SELECT id, claim_id, applicant_name, village_name, district, state, claim_type, status 
+       FROM fra_claims 
+       WHERE applicant_name ILIKE $1 OR village_name ILIKE $1 OR district ILIKE $1 OR claim_id ILIKE $1`,
+      [searchTerm]
+    );
+
+    const documentsQuery = pool.query(
+      `SELECT id, title, description, category, state, district, village 
+       FROM documents 
+       WHERE title ILIKE $1 OR description ILIKE $1 OR tags::text ILIKE $1`,
+      [searchTerm]
+    );
+
+    const pattaHoldersQuery = pool.query(
+      `SELECT id, patta_number, holder_name, village_name, district, state 
+       FROM patta_holders 
+       WHERE holder_name ILIKE $1 OR patta_number ILIKE $1`,
+      [searchTerm]
+    );
+
+    const [claimsResult, documentsResult, pattaHoldersResult] = await Promise.all([
+      claimsQuery,
+      documentsQuery,
+      pattaHoldersQuery
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        claims: claimsResult.rows,
+        documents: documentsResult.rows,
+        pattaHolders: pattaHoldersResult.rows,
+      },
+    });
+  } catch (error) {
+    console.error('Error during global search:', error);
+    res.status(500).json({ success: false, message: 'An error occurred during the search.' });
+  }
+};
+
 export const getFRAClaimsByState = async (req, res) => {
   const { state } = req.params;
   const result = await pool.query(

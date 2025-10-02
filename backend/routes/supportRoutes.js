@@ -1,22 +1,19 @@
 import express from 'express';
 import {
-  getSupportTickets,
-  submitSupportTicket,
-  updateTicketStatus,
-  getHelpContent,
-  getSupportStats
-} from '../controllers/supportController.js';
+  getSchemeRecommendations,
+  getDecisionAnalytics,
+  getSchemes
+} from '../controllers/decisionSupportController.js';
 
 const router = express.Router();
 
-// Support ticket routes
-router.get('/tickets', getSupportTickets);
-router.post('/tickets', submitSupportTicket);
-router.put('/tickets/:id', updateTicketStatus);
+router.use((req, res, next) => {
+    console.log(`[DSS Router] Request received for path: ${req.path}`);
+    next();
+});
 
-// Help content routes
-router.get('/help', getHelpContent);
-router.get('/faq', getHelpContent); // Use getHelpContent for FAQ endpoint
-router.get('/stats', getSupportStats);
+router.post('/recommendations/:villageId', getSchemeRecommendations);
+router.get('/analytics', getDecisionAnalytics);
+router.get('/schemes', getSchemes);
 
 export default router;

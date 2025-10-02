@@ -4,17 +4,19 @@ import {
   getFRAStatsByDistrict,
   getFRAVillages,
   getVillageAssets,
-  getSchemeRecommendations,
   addFRAClaim,
   getPattaHoldersByClaimId,
   getPattaHoldersByState,
   getLandParcels,
   getEnhancedVillageData,
   getPattaHoldersCoordinates,
-  getVillageBoundaries
+  getVillageBoundaries,
+  searchGlobal
 } from '../controllers/fraController.js';
 
 const router = express.Router();
+
+router.get('/search', searchGlobal);
 
 // FRA claims routes
 router.get('/claims/:state', getFRAClaimsByState);
@@ -26,7 +28,6 @@ router.get('/stats/:state/:district', getFRAStatsByDistrict);
 // Village routes
 router.get('/villages', getFRAVillages);
 router.get('/villages/:villageId/assets', getVillageAssets);
-router.get('/villages/:villageId/recommendations', getSchemeRecommendations);
 router.get('/villages/:villageId/enhanced', getEnhancedVillageData);
 
 // Patta holders routes

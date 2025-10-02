@@ -10,6 +10,7 @@ import Documents from './pages/Documents';
 import SupportHelp from './pages/SupportHelp';
 import React from 'react';
 import { SidebarProvider, useSidebar } from './components/SidebarContext';
+import SearchResults from './pages/SearchResults';
 import { cn } from './lib/utils';
 
 function AppContent() {
@@ -30,6 +31,7 @@ function AppContent() {
             <Route path="/decision-support" element={<DecisionSupport />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/support-help" element={<SupportHelp />} />
+            <Route path="/search" element={<SearchResults />} /> 
           </Routes>
         </main>
       </div>
